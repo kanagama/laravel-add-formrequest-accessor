@@ -77,10 +77,10 @@ class BookingController extends Controller
     public function getTaxAttribute(): int
     {
         // NG getTaxAttribute() より下に記述されている getPriceAttribute() は取得できません。
-        // return floor($this->input('price') / 0.1);
+        // return floor($this->input('price') * 0.1);
 
         // OK
-        return floor($this->getPriceAttribute() / 0.1);
+        return floor($this->getPriceAttribute() * 0.1);
     }
 
     /**
