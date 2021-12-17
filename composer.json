@@ -1,0 +1,25 @@
+{
+    "name": "kanagama/laravel-add-formrequest-accessor",
+    "description": "Laravel の FormRequest に accessor 機能を付与する",
+    "keywords": [
+        "laravel",
+        "formrequest",
+        "accessor"
+    ],
+    "authors": [
+        {
+            "name": "kazuma nagama",
+            "email": "k.nagama0632@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^7.3 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kanagama\\FormRequestAccessor\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
