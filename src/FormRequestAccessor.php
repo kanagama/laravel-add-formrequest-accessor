@@ -30,6 +30,7 @@ trait FormRequestAccessor
                 continue;
             }
 
+            // Request に追加
             $this->merge([
                 $match[0] => $this->{$method}(),
             ]);
