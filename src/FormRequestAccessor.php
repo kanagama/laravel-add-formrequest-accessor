@@ -14,6 +14,27 @@ use Illuminate\Support\Str;
 trait FormRequestAccessor
 {
     /**
+     * input のオーバーライド
+     * 定義前のアクセサメソッドを呼び出された場合
+     *
+     * @param  string|null  $key
+     * @param  mixed|null  $default
+     */
+    public function input($key = null, $default = null)
+    {
+        $inputValue = parent::input($key);
+        if (is_null($inputValue) && !is_null($key) && is_null($default)) {
+            // 対象アクセサメソッドが存在していれば呼び出す
+            $method = Str::camel('get_'. $key . '_attribute');
+            if (in_array($method, $this->getThisClassAccessorMethods(), true) !== false) {
+                return $this->{$method}();
+            }
+        }
+
+        return $inputValue;
+    }
+
+    /**
      * Illuminate\Http\Concerns\InteractsWithInput::passedValidation() を override
      *
      * @return void
@@ -24,8 +45,7 @@ trait FormRequestAccessor
     {
         parent::passedValidation();
 
-        $accessor = preg_grep('/^get.*Attribute/', get_class_methods(get_class())) ?? [];
-        foreach ($accessor as $method) {
+        foreach ($this->getThisClassAccessorMethods() as $method) {
             preg_match('/(?<=get_).+(?=_attribute)/', str::snake($method), $match);
             if (empty($match[0])) {
                 continue;
@@ -35,5 +55,15 @@ trait FormRequestAccessor
                 $match[0] => $this->{$method}(),
             ]);
         }
+    }
+
+    /**
+     * 対象リクエストクラスのアクセサメソッドを取得
+     *
+     * @return array
+     */
+    private function getThisClassAccessorMethods(): array
+    {
+        return preg_grep('/^get.*Attribute/', get_class_methods(get_class())) ?? [];
     }
 }

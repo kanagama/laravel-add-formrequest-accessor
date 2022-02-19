@@ -63,28 +63,3 @@ class BookingController extends Controller
         dd($request->full_name);
     }
 ```
-
-### 注意事項
-#### アクセサは記述されている順番で実行されるため、アクセサが自身より下に記述されているパラメータは取得できません。
-
-
-```php
-    /**
-     * 消費税を算出
-     *
-     * @return int
-     */
-    public function getTaxAttribute(): int
-    {
-        // NG getTaxAttribute() より下に記述されている getPriceAttribute() は取得できません。
-        // return floor($this->input('price') * 0.1);
-
-        // OK
-        return floor($this->getPriceAttribute() * 0.1);
-    }
-
-    /**
-     * 料金を取得
-     */
-    public function getPriceAttribute(): int
-```
