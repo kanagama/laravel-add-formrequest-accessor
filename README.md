@@ -1,6 +1,9 @@
 # laravel-add-formrequest-accessor
 laravel の FormRequest に accessor 機能を付与します。
 
+## Qiita に詳しい説明書いてます
+https://qiita.com/kazumacchi/items/aebfe8dfccbfd28acaf4
+
 
 ## インストール
 
