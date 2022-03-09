@@ -102,9 +102,8 @@ trait FormRequestAccessor
      */
     private function checkThisFunctionCall(string $key): bool
     {
-        $debug_backtrace = debug_backtrace();
-        $call = $debug_backtrace[2]['function'];
+        $debug_backtrace = array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10), 'function');
 
-        return ($call === Str::camel('get_'. $key . '_attribute'));
+        return (in_array(Str::camel('get_'. $key . '_attribute'), $debug_backtrace, true) !== false);
     }
 }
