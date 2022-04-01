@@ -66,3 +66,38 @@ class BookingController extends Controller
         dd($request->full_name);
     }
 ```
+
+### $guarded
+
+ $guarded で指定したプロパティは、all() ファンクションで出力されません。
+
+
+```php
+protected $guarded = [
+    'first_name',
+];
+```
+
+### $fill
+
+ $fill で指定したプロパティのみ all() ファンクションで出力されます。
+ $guarded と一緒に記述されていた場合、$fill が優先されます。
+
+```php
+protected $fill = [
+    'first_name',
+];
+```
+
+## casts
+
+指定したプロパティの型を変換します。
+（※現在、int, interger, bool, boolean, string のみ対応）
+
+```php
+protected $casts = [
+    'id'        => 'int',
+    'from_date' => 'string',
+    'view_flg'  => 'bool',
+];
+```

@@ -2,6 +2,8 @@
 
 namespace Kanagama\FormRequestAccessor;
 
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -23,13 +25,22 @@ trait FormRequestAccessor
     {
         $all = parent::all($keys);
 
-        // property $guarded が存在しない、または配列でない
-        if (!property_exists(get_class(), 'guarded') || !is_array($this->guarded)) {
+        // property $fill が存在している、かつ配列、かつ空でない
+        if (property_exists(get_class(), 'fill') && is_array($this->fill) && !empty($this->fill)) {
+            foreach ($all as $key => $value) {
+                if (!in_array($key, $this->fill, true)) {
+                    unset($all[$key]);
+                }
+            }
+
             return $all;
         }
 
-        foreach ($this->guarded as $key) {
-            unset($all[$key]);
+        // property $guarded が存在している、かつ配列、かつ空でない
+        if (property_exists(get_class(), 'guarded') && is_array($this->guarded) && !empty($this->guarded)) {
+            foreach ($this->guarded as $key) {
+                unset($all[$key]);
+            }
         }
 
         return $all;
@@ -82,6 +93,19 @@ trait FormRequestAccessor
                 $match[0] => $this->{$method}(),
             ]);
         }
+
+        // $casts が存在している
+        if (property_exists(get_class(), 'casts') && !empty($this->casts) && is_array($this->casts)) {
+            foreach ($this->casts as $key => $value) {
+                if (!isset($this->{$key})) {
+                    continue;
+                }
+
+                $this->merge([
+                    $key => $this->castAttribute($value, $this->{$key}),
+                ]);
+            }
+        }
     }
 
     /**
@@ -105,5 +129,40 @@ trait FormRequestAccessor
         $debug_backtrace = array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10), 'function');
 
         return (in_array(Str::camel('get_'. $key . '_attribute'), $debug_backtrace, true) !== false);
+    }
+
+    /**
+     * 型変換して返却
+     *
+     * @param  string  $type
+     * @param  mixed  $value
+     * @return mixed
+     */
+    private function castAttribute(string $type, $value)
+    {
+        switch ($type) {
+            case 'int': case 'integer':
+                return (int) $value;
+            case 'string':
+                return (string) $value;
+            case 'bool': case 'boolean':
+                return (bool) $value;
+            // TODO
+            // case 'object':
+            //     return json_decode($value, false);
+            // case 'array':
+            // case 'json':
+            //     return json_decode($value, true);
+            // case 'collection':
+            //     return new Collection(json_decode($value, true));
+            // case 'datetime':
+            //     // TODO 対応予定
+            //     if (gettype($value) === 'string') {
+            //         return new Carbon($value);
+            //     }
+            //     break;
+        }
+
+        return $value;
     }
 }
