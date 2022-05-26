@@ -9,7 +9,10 @@ use Illuminate\Support\Str;
 /**
  * FormRequest に accessor 機能を付与
  *
- * @method void $passedValidation()
+ * @method void passedValidation()
+ * @method array all(mixed $keys)
+ * @method mixed input(mixed $key = null, mixed $default = null)
+ * @method mixed __get(mixed $key)
  *
  * @author k.nagama <k.nagama0632@gmail.com>
  */
@@ -25,8 +28,7 @@ trait FormRequestAccessor
     {
         $all = parent::all($keys);
 
-        // property $fill が存在している、かつ配列、かつ空でない
-        if (property_exists(get_class(), 'fill') && is_array($this->fill) && !empty($this->fill)) {
+        if ($this->checkExistFillProperty()) {
             foreach ($all as $key => $value) {
                 if (!in_array($key, $this->fill, true)) {
                     unset($all[$key]);
@@ -36,8 +38,7 @@ trait FormRequestAccessor
             return $all;
         }
 
-        // property $guarded が存在している、かつ配列、かつ空でない
-        if (property_exists(get_class(), 'guarded') && is_array($this->guarded) && !empty($this->guarded)) {
+        if ($this->checkExistGuardedProperty()) {
             foreach ($this->guarded as $key) {
                 unset($all[$key]);
             }
@@ -63,7 +64,7 @@ trait FormRequestAccessor
             !$this->checkThisFunctionCall($key)
         ) {
             // 対象アクセサメソッドが存在していれば呼び出す
-            $method = Str::camel('get_'. $key . '_attribute');
+            $method = $this->camelMethod($key);
             if (in_array($method, $this->getThisClassAccessorMethods(), true) !== false) {
                 return $this->{$method}();
             }
@@ -94,18 +95,87 @@ trait FormRequestAccessor
             ]);
         }
 
-        // $casts が存在している
-        if (property_exists(get_class(), 'casts') && !empty($this->casts) && is_array($this->casts)) {
-            foreach ($this->casts as $key => $value) {
-                if (!isset($this->{$key})) {
-                    continue;
-                }
-
-                $this->merge([
-                    $key => $this->castAttribute($value, $this->{$key}),
-                ]);
-            }
+        // $casts が存在していない
+        if (!$this->checkExistCastsProperty()) {
+            return;
         }
+
+        foreach ($this->casts as $key => $value) {
+            if (!isset($this->{$key})) {
+                continue;
+            }
+
+            $this->merge([
+                $key => $this->castAttribute($value, $this->{$key}),
+            ]);
+        }
+    }
+
+    /**
+     * 未定義プロパティへのアクセス
+     *
+     * @param  mixed  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        $response = parent::__get($key);
+        if (
+            !is_null($response)
+            ||
+            // fill または guarded が存在しなければ終了
+            !$this->checkExistFillProperty() || !$this->checkExistGuardedProperty()
+        ) {
+            return $response;
+        }
+
+        if (in_array($this->camelMethod($key), $this->getThisClassAccessorMethods(), true)) {
+            return $this->{$this->camelMethod($key)}();
+        }
+
+        return null;
+    }
+
+    /**
+     * $fill プロパティが存在しているかチェック
+     *
+     * @return bool
+     */
+    private function checkExistFillProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'fill')
+            &&
+            is_array($this->fill) && !empty($this->fill)
+        );
+    }
+
+    /**
+     * $guarded プロパティが存在しているかチェック
+     *
+     * @return bool
+     */
+    private function checkExistGuardedProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'guarded')
+            &&
+            is_array($this->guarded) && !empty($this->guarded)
+        );
+    }
+
+    /**
+     * $casts プロパティが存在しているかチェック
+     *
+     * @return bool
+     */
+    private function checkExistCastsProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'casts')
+            &&
+            !empty($this->casts) && is_array($this->casts)
+        );
     }
 
     /**
@@ -128,7 +198,18 @@ trait FormRequestAccessor
     {
         $debug_backtrace = array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10), 'function');
 
-        return (in_array(Str::camel('get_'. $key . '_attribute'), $debug_backtrace, true) !== false);
+        return (in_array($this->camelMethod($key), $debug_backtrace, true) !== false);
+    }
+
+    /**
+     * キャメルケースに変換
+     *
+     * @param  string  $key
+     * @return string
+     */
+    private function camelMethod(string $key): string
+    {
+        return Str::camel('get_'. $key . '_attribute');
     }
 
     /**
