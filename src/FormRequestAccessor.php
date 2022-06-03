@@ -5,6 +5,7 @@ namespace Kanagama\FormRequestAccessor;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Kanagama\FormRequestAccessor\Models\AccessorModel;
 
 /**
  * FormRequest に accessor 機能を付与
@@ -90,8 +91,18 @@ trait FormRequestAccessor
                 continue;
             }
 
+            $return_value = $this->{$method}();
+            // 返却値が NULL のアクセサは出力しない設定かどうか
+            if ($this->checkExistNullDisabledProperty() && is_null($return_value)) {
+                continue;
+            }
+            // 返却値が empty のアクセサは出力しない設定かどうか
+            if ($this->checkExistEmptyDisabledProperty() && empty($return_value)) {
+                continue;
+            }
+
             $this->merge([
-                $match[0] => $this->{$method}(),
+                $match[0] => $return_value,
             ]);
         }
 
@@ -100,13 +111,14 @@ trait FormRequestAccessor
             return;
         }
 
+        $model = new AccessorModel($this->casts);
         foreach ($this->casts as $key => $value) {
-            if (!isset($this->{$key})) {
+            if (!isset($this->{$key}) && $this->checkExistNullDisabledProperty()) {
                 continue;
             }
 
             $this->merge([
-                $key => $this->castAttribute($value, $this->{$key}),
+                $key => $model->castAttribute($value, $this->{$key}),
             ]);
         }
     }
@@ -179,6 +191,34 @@ trait FormRequestAccessor
     }
 
     /**
+     * $null_disabled プロパティが存在しているかチェック
+     *
+     * @return bool
+     */
+    private function checkExistNullDisabledProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'null_disabled')
+            &&
+            $this->null_disabled
+        );
+    }
+
+    /**
+     * $empty_disabled プロパティが存在しているかチェック
+     *
+     * @return bool
+     */
+    private function checkExistEmptyDisabledProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'empty_disabled')
+            &&
+            $this->null_disabled
+        );
+    }
+
+    /**
      * 対象リクエストクラスのアクセサメソッドを取得
      *
      * @return array
@@ -210,40 +250,5 @@ trait FormRequestAccessor
     private function camelMethod(string $key): string
     {
         return Str::camel('get_'. $key . '_attribute');
-    }
-
-    /**
-     * 型変換して返却
-     *
-     * @param  string  $type
-     * @param  mixed  $value
-     * @return mixed
-     */
-    private function castAttribute(string $type, $value)
-    {
-        switch ($type) {
-            case 'int': case 'integer':
-                return (int) $value;
-            case 'string':
-                return (string) $value;
-            case 'bool': case 'boolean':
-                return (bool) $value;
-            // TODO
-            // case 'object':
-            //     return json_decode($value, false);
-            // case 'array':
-            // case 'json':
-            //     return json_decode($value, true);
-            // case 'collection':
-            //     return new Collection(json_decode($value, true));
-            // case 'datetime':
-            //     // TODO 対応予定
-            //     if (gettype($value) === 'string') {
-            //         return new Carbon($value);
-            //     }
-            //     break;
-        }
-
-        return $value;
     }
 }

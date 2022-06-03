@@ -89,10 +89,18 @@ protected $fill = [
 ];
 ```
 
+### null_disabled
+
+ $null_disabled で指定したアクセサの戻り値が null の場合、出力されません
+
+### empty_disabled
+
+ $empty_disabled で指定したアクセサの戻り値が空（empty()チェック）の場合、出力されません
+
 ## casts
 
 指定したプロパティの型を変換します。
-（※現在、int, interger, bool, boolean, string のみ対応）
+model の $casts と同様の挙動をします。
 
 ```php
 protected $casts = [
