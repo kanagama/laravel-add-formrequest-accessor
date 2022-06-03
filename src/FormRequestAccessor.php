@@ -5,7 +5,7 @@ namespace Kanagama\FormRequestAccessor;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Kanagama\FormRequestAccessor\Models\AccessorModel;
+use Kanagama\FormRequestAccessor\Models\CastModel;
 
 /**
  * FormRequest に accessor 機能を付与
@@ -19,6 +19,8 @@ use Kanagama\FormRequestAccessor\Models\AccessorModel;
  */
 trait FormRequestAccessor
 {
+    private static array $before_all = [];
+
     /**
      * laravel\framework\src\Illuminate\Http\Concerns\InteractsWithInput.php
      *
@@ -85,42 +87,21 @@ trait FormRequestAccessor
     {
         parent::passedValidation();
 
-        foreach ($this->getThisClassAccessorMethods() as $method) {
-            preg_match('/(?<=get_).+(?=_attribute)/', str::snake($method), $match);
-            if (empty($match[0])) {
-                continue;
-            }
+        $this->addAccessorMethods();
 
-            $return_value = $this->{$method}();
-            // 返却値が NULL のアクセサは出力しない設定かどうか
-            if ($this->checkExistNullDisabledProperty() && is_null($return_value)) {
-                continue;
-            }
-            // 返却値が empty のアクセサは出力しない設定かどうか
-            if ($this->checkExistEmptyDisabledProperty() && empty($return_value)) {
-                continue;
-            }
+        $this->callModelCast();
 
-            $this->merge([
-                $match[0] => $return_value,
-            ]);
-        }
+        $this->afterValidation();
+    }
 
-        // $casts が存在していない
-        if (!$this->checkExistCastsProperty()) {
-            return;
-        }
+    /**
+     * バリデーション準備
+     */
+    public function validateResolved()
+    {
+        $this->construct();
 
-        $model = new AccessorModel($this->casts);
-        foreach ($this->casts as $key => $value) {
-            if (!isset($this->{$key}) && $this->checkExistNullDisabledProperty()) {
-                continue;
-            }
-
-            $this->merge([
-                $key => $model->castAttribute($value, $this->{$key}),
-            ]);
-        }
+        parent::validateResolved();
     }
 
     /**
@@ -146,6 +127,77 @@ trait FormRequestAccessor
         }
 
         return null;
+    }
+
+    /**
+     * validation 終了後の処理
+     */
+    protected function afterValidation()
+    {
+
+    }
+
+    /**
+     * 前処理
+     *
+     * @return void
+     */
+    private function construct()
+    {
+        self::$before_all = parent::all();
+    }
+
+    /**
+     * アクセサメソッドを追加
+     *
+     * @return void
+     */
+    private function addAccessorMethods()
+    {
+        foreach ($this->getThisClassAccessorMethods() as $method) {
+            preg_match('/(?<=get_).+(?=_attribute)/', str::snake($method), $match);
+            if (empty($match[0])) {
+                continue;
+            }
+
+            $return_value = $this->{$method}();
+            // 返却値が NULL のアクセサは出力しない設定かどうか
+            if ($this->checkExistNullDisabledProperty() && is_null($return_value)) {
+                continue;
+            }
+            // 返却値が empty のアクセサは出力しない設定かどうか
+            if ($this->checkExistEmptyDisabledProperty() && empty($return_value)) {
+                continue;
+            }
+
+            $this->merge([
+                $match[0] => $return_value,
+            ]);
+        }
+    }
+
+    /**
+     * model クラスの cast 処理を呼び出す
+     *
+     * @return void
+     */
+    private function callModelCast()
+    {
+        // $casts が存在している
+        if (!$this->checkExistCastsProperty()) {
+            return;
+        }
+
+        $model = new CastModel($this->casts);
+        foreach ($this->casts as $key => $value) {
+            if (!isset($this->{$key}) && $this->checkExistNullDisabledProperty()) {
+                continue;
+            }
+
+            $this->merge([
+                $key => $model->castAttribute($value, $this->{$key}),
+            ]);
+        }
     }
 
     /**
@@ -225,7 +277,9 @@ trait FormRequestAccessor
      */
     private function getThisClassAccessorMethods(): array
     {
-        return preg_grep('/^get.*Attribute/', get_class_methods(get_class())) ?? [];
+        return array_merge(
+            preg_grep('/^get.*Attribute/', get_class_methods(get_class())) ?? []
+        );
     }
 
     /**
@@ -250,5 +304,28 @@ trait FormRequestAccessor
     private function camelMethod(string $key): string
     {
         return Str::camel('get_'. $key . '_attribute');
+    }
+
+    /**
+     * 設定値を取得
+     *
+     * @return void
+     */
+    public function settings()
+    {
+        dd((object) [
+            'settings' => [
+                'fill'           => $this->checkExistFillProperty() ? (object) $this->fill : null,
+                'guarded'        => $this->checkExistGuardedProperty() ? (object) $this->guarded : null,
+                'casts'          => $this->checkExistCastsProperty() ? (object) $this->casts : null,
+                'null_disabled'  => $this->checkExistNullDisabledProperty() ? $this->null_disabled : false,
+                'empty_disabled' => $this->checkExistEmptyDisabledProperty() ? $this->empty_disabled : false,
+            ],
+            'all' => [
+                'before_all' => (object) self::$before_all,
+                'after_all'  => (object) $this->all(),
+            ],
+            'accessor_methods' => (object) $this->getThisClassAccessorMethods(),
+        ]);
     }
 }
