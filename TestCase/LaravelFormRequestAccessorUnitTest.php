@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use Kanagama\FormRequestAccessor\RefrectionClassTrait;
+use Kanagama\FormRequestAccessor\TestTraits\RefrectionClassTrait;
 use Tests\TestCase;
 
 /**
@@ -16,95 +16,39 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
      * string 型に変換されているか
      *
      * @test
+     *
+     * @dataProvider camelCaseProvider
      */
-    public function castAttributeString()
+    public function camelCase(...$params)
     {
-        $response = $this->refrectionClass('castAttribute', [
-            'string',
-            1,
+        $request = $params[0];
+        $camel_case = $params[1];
+
+        $response = $this->refrectionClass('camelMethod', [
+            $request,
         ]);
-        $this->assertIsString($response);
-    }
-
-    /**
-     * int 型に変換されているか
-     *
-     * @test
-     *
-     * @dataProvider intProvider
-     */
-    public function castAttributeInt(...$params)
-    {
-        $response = $this->refrectionClass('castAttribute', $params);
-        $this->assertIsInt($response);
+        $this->assertTrue($response === $camel_case);
     }
 
     /**
      * @return array
      */
-    public function intProvider(): array
+    public function camelCaseProvider(): array
     {
         return [
             [
-                'integer',
-                "1",
+                'request'  => 'test',
+                'response' => 'getTestAttribute',
             ],
             [
-                'int',
-                "2",
+                'request'  => 'test_case',
+                'response' => 'getTestCaseAttribute',
+            ],
+            [
+                'request'  => 'test_case_last',
+                'response' => 'getTestCaseLastAttribute',
             ],
         ];
-    }
-
-    /**
-     * bool 型に変換されているか
-     *
-     * @test
-     *
-     * @dataProvider boolProvider
-     */
-    public function castAttributeBool(...$params)
-    {
-        $response = $this->refrectionClass('castAttribute', $params);
-        $this->assertIsBool($response);
-    }
-
-    /**
-     * @return array
-     */
-    public function boolProvider(): array
-    {
-        return [
-            [
-                'boolean',
-                "1",
-            ],
-            [
-                'bool',
-                "0",
-            ],
-        ];
-    }
-
-    /**
-     * attribute メソッドが取得できるかどうか
-     *
-     * @test
-     */
-    public function getThisClassAccessorMethods()
-    {
-        $response = $this->refrectionClass('getThisClassAccessorMethods', []);
-        $this->assertNotEmpty($response);
-    }
-
-    /**
-     * アクセサが同じアクセサから呼び出されているか
-     *
-     * @test
-     */
-    public function checkThisFunctionCallTrue()
-    {
-        $this->assertTrue($this->getTestAttribute());
     }
 
     /**
@@ -118,5 +62,60 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
             'test',
         ]);
         $this->assertFalse($response);
+    }
+
+    /**
+     * attribute メソッドが取得できるかどうか
+     *
+     * @test
+     */
+    public function checkGetThisClassAccessorMethods()
+    {
+        $response = $this->refrectionClass('getThisClassAccessorMethods', []);
+        $this->assertNotEmpty($response);
+    }
+
+    /**
+     * $empty_disabled が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckExistEmptyDisabledProperty()
+    {
+        $response = $this->refrectionClass('checkExistEmptyDisabledProperty', []);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * $null_disabled が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckExistNullDisabledProperty()
+    {
+        $response = $this->refrectionClass('checkExistNullDisabledProperty', []);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * $casts が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckCastsProperty()
+    {
+        $response = $this->refrectionClass('checkExistCastsProperty', []);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * $guarded が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckGuardedProperty()
+    {
+        $response = $this->refrectionClass('checkExistCastsProperty', []);
+        $this->assertTrue($response);
     }
 }

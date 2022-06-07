@@ -1,9 +1,9 @@
 <?php
 
-namespace Kanagama\FormRequestAccessor;
+namespace Kanagama\FormRequestAccessor\TestTraits;
 
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
-use Kanagama\FormRequestAccessor\TestAttributeFunctionTrait;
+use Kanagama\FormRequestAccessor\TestTraits\TestAttributeFunctionTrait;
 use ReflectionClass;
 
 trait RefrectionClassTrait
@@ -23,6 +23,9 @@ trait RefrectionClassTrait
         $formRequestAccessor = new class {
             use FormRequestAccessor, TestAttributeFunctionTrait;
 
+            protected $null_disabled = true;
+            protected $empty_disabled = true;
+
             public function passedValidation() {}
             public function all($key = null) {
                 return [];
@@ -32,7 +35,7 @@ trait RefrectionClassTrait
             }
         };
 
-        // ReflectionClassをテスト対象のクラスをもとに作る.
+        // ReflectionClassをテスト対象のクラスを元に作る.
         $reflection = new ReflectionClass($formRequestAccessor);
         // 対象メソッド取得
         $method = $reflection->getMethod($methodName);
@@ -52,5 +55,53 @@ trait RefrectionClassTrait
         return $this->refrectionClass('checkThisFunctionCall', [
             'test',
         ]);
+    }
+
+    /**
+     * @return int
+     */
+    public function getIntAttribute(): int
+    {
+        return 1;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCastIntAttribute(): string
+    {
+        return (string) $this->getIntAttribute();
+    }
+
+    /**
+     * @return int
+     */
+    public function getCastStringAttribute(): int
+    {
+        return $this->getIntAttribute();;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCastBoolFalseAttribute(): int
+    {
+        return 0;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCastBoolTrueAttribute(): int
+    {
+        return $this->getIntAttribute();;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCastDatetimeAttribute(): string
+    {
+        return date('Y-m-d');
     }
 }

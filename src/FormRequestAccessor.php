@@ -14,12 +14,49 @@ use Kanagama\FormRequestAccessor\Models\CastModel;
  * @method array all(mixed $keys)
  * @method mixed input(mixed $key = null, mixed $default = null)
  * @method mixed __get(mixed $key)
+ * @method void validateResolved()
  *
  * @author k.nagama <k.nagama0632@gmail.com>
  */
 trait FormRequestAccessor
 {
-    private static array $before_all = [];
+    /**
+     * 変更前の Request クラス
+     */
+    private static $beforeRequest;
+
+    /**
+     * アクセサ追加前の all() を取得
+     *
+     * @return array
+     */
+    public function beforeAll(): array
+    {
+        return $this->before()->all();
+    }
+
+    /**
+     * 設定値を取得
+     *
+     * @return void
+     */
+    public function settings()
+    {
+        dd([
+            'settings' => [
+                'fill'           => $this->checkExistFillProperty() ? $this->fill : null,
+                'guarded'        => $this->checkExistGuardedProperty() ? $this->guarded : null,
+                'casts'          => $this->checkExistCastsProperty() ? $this->casts : null,
+                'null_disabled'  => $this->checkExistNullDisabledProperty() ? $this->null_disabled : false,
+                'empty_disabled' => $this->checkExistEmptyDisabledProperty() ? $this->empty_disabled : false,
+            ],
+            'all' => [
+                'before_all' => $this->beforeAll(),
+                'after_all'  => $this->all(),
+            ],
+            'accessor_methods' => $this->getThisClassAccessorMethods(),
+        ]);
+    }
 
     /**
      * laravel\framework\src\Illuminate\Http\Concerns\InteractsWithInput.php
@@ -80,8 +117,6 @@ trait FormRequestAccessor
      * Illuminate\Http\Concerns\InteractsWithInput::passedValidation() を override
      *
      * @return void
-     *
-     * @author k.nagama <k.nagama0632@gmail.com>
      */
     public function passedValidation(): void
     {
@@ -96,12 +131,24 @@ trait FormRequestAccessor
 
     /**
      * バリデーション準備
+     *
+     * @return void
      */
     public function validateResolved()
     {
         $this->construct();
 
         parent::validateResolved();
+    }
+
+    /**
+     * 変更前の Request クラスを返却
+     *
+     * @return mixed
+     */
+    public function before()
+    {
+        return self::$beforeRequest;
     }
 
     /**
@@ -131,6 +178,8 @@ trait FormRequestAccessor
 
     /**
      * validation 終了後の処理
+     *
+     * @return void
      */
     protected function afterValidation()
     {
@@ -138,13 +187,13 @@ trait FormRequestAccessor
     }
 
     /**
-     * 前処理
+     * 前処理（変更前の Request を複製）
      *
      * @return void
      */
     private function construct()
     {
-        self::$before_all = parent::all();
+        self::$beforeRequest = clone $this;
     }
 
     /**
@@ -266,7 +315,7 @@ trait FormRequestAccessor
         return (
             property_exists(get_class(), 'empty_disabled')
             &&
-            $this->null_disabled
+            $this->empty_disabled
         );
     }
 
@@ -286,7 +335,7 @@ trait FormRequestAccessor
      * アクセサから同じアクセサが呼び出されているかチェック
      *
      * @param  string  $key
-     * @return boolean
+     * @return bool
      */
     private function checkThisFunctionCall(string $key): bool
     {
@@ -304,28 +353,5 @@ trait FormRequestAccessor
     private function camelMethod(string $key): string
     {
         return Str::camel('get_'. $key . '_attribute');
-    }
-
-    /**
-     * 設定値を取得
-     *
-     * @return void
-     */
-    public function settings()
-    {
-        dd((object) [
-            'settings' => [
-                'fill'           => $this->checkExistFillProperty() ? (object) $this->fill : null,
-                'guarded'        => $this->checkExistGuardedProperty() ? (object) $this->guarded : null,
-                'casts'          => $this->checkExistCastsProperty() ? (object) $this->casts : null,
-                'null_disabled'  => $this->checkExistNullDisabledProperty() ? $this->null_disabled : false,
-                'empty_disabled' => $this->checkExistEmptyDisabledProperty() ? $this->empty_disabled : false,
-            ],
-            'all' => [
-                'before_all' => (object) self::$before_all,
-                'after_all'  => (object) $this->all(),
-            ],
-            'accessor_methods' => (object) $this->getThisClassAccessorMethods(),
-        ]);
     }
 }
