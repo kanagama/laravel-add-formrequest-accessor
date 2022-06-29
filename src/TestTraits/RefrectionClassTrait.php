@@ -3,7 +3,6 @@
 namespace Kanagama\FormRequestAccessor\TestTraits;
 
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
-use Kanagama\FormRequestAccessor\TestTraits\TestAttributeFunctionTrait;
 use ReflectionClass;
 
 trait RefrectionClassTrait
@@ -25,6 +24,21 @@ trait RefrectionClassTrait
 
             protected $null_disabled = true;
             protected $empty_disabled = true;
+            protected $casts = [
+                'test_casts',
+            ];
+            protected $guarded = [
+                'test_guarded',
+            ];
+            protected $fill = [
+                'test_fill',
+            ];
+            protected $enabled = [
+                'test_enabled',
+            ];
+            protected $disabled = [
+                'test_disabled',
+            ];
 
             public function passedValidation() {}
             public function all($key = null) {

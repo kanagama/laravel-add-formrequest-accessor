@@ -2,8 +2,6 @@
 
 namespace Kanagama\FormRequestAccessor;
 
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Kanagama\FormRequestAccessor\Models\CastModel;
 
@@ -24,6 +22,7 @@ trait FormRequestAccessor
      * 変更前の Request クラス
      */
     private static $beforeRequest;
+    private static $process = false;
 
     /**
      * アクセサ追加前の all() を取得
@@ -67,6 +66,11 @@ trait FormRequestAccessor
     public function all($keys = null): array
     {
         $all = parent::all($keys);
+
+        // $enabled もしくは $disabled が指定されている場合はそのまま返却
+        if ($this->checkExistEnabledProperty() || $this->checkExistDisabledProperty()) {
+            return $all;
+        }
 
         if ($this->checkExistFillProperty()) {
             foreach ($all as $key => $value) {
@@ -120,6 +124,8 @@ trait FormRequestAccessor
      */
     public function passedValidation(): void
     {
+        $this->prepareForAccessor();
+
         parent::passedValidation();
 
         $this->addAccessorMethods();
@@ -127,6 +133,8 @@ trait FormRequestAccessor
         $this->callModelCast();
 
         $this->afterValidation();
+
+        $this->endRequest();
     }
 
     /**
@@ -136,7 +144,7 @@ trait FormRequestAccessor
      */
     public function validateResolved()
     {
-        $this->construct();
+        $this->startRequest();
 
         parent::validateResolved();
     }
@@ -163,8 +171,10 @@ trait FormRequestAccessor
         if (
             !is_null($response)
             ||
+            (self::$process || ($this->checkExistDisabledProperty() || $this->checkExistEnabledProperty()))
+            ||
             // fill または guarded が存在しなければ終了
-            !$this->checkExistFillProperty() || !$this->checkExistGuardedProperty()
+            (!$this->checkExistFillProperty() || !$this->checkExistGuardedProperty())
         ) {
             return $response;
         }
@@ -177,11 +187,21 @@ trait FormRequestAccessor
     }
 
     /**
+     * アクセサ実行前の処理
+     *
+     * @return void
+     */
+    public function prepareForAccessor()
+    {
+
+    }
+
+    /**
      * validation 終了後の処理
      *
      * @return void
      */
-    protected function afterValidation()
+    public function afterValidation()
     {
 
     }
@@ -191,9 +211,75 @@ trait FormRequestAccessor
      *
      * @return void
      */
-    private function construct()
+    private function startRequest()
     {
         self::$beforeRequest = clone $this;
+    }
+
+    /**
+     * 後処理
+     *
+     * @return void
+     */
+    private function endRequest()
+    {
+        // __get() で アクセサを動作させない
+        self::$process = false;
+
+        // $enabled で指定されていない、または $disabled で指定されているプロパティは削除
+        foreach (get_object_vars($this) as $key => $value) {
+            if ($this->checkExistEnabledProperty()) {
+                if (empty($this->enabled[$key])) {
+                    unset($this->{$key});
+                }
+                continue;
+            }
+            if ($this->checkExistDisabledProperty()) {
+                if (!empty($this->disabled[$key])) {
+                    unset($this->{$key});
+                }
+                continue;
+            }
+
+            if ($this->checkNullPropertyDisabled($key) || $this->checkEmptyPropertyDisabled($key)) {
+                unset($this->{$key});
+                continue;
+            }
+        }
+    }
+
+    /**
+     * 返却値が NULL のアクセサは出力しない設定かどうか
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    private function checkNullPropertyDisabled(string $key): bool
+    {
+        return (
+            $this->checkExistNullDisabledProperty()
+            &&
+            property_exists(get_class(), $key)
+            &&
+            is_null($this->{$key})
+        );
+    }
+
+    /**
+     * 返却値が empty のアクセサは出力しない設定かどうか
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    private function checkEmptyPropertyDisabled(string $key): bool
+    {
+        return (
+            $this->checkExistEmptyDisabledProperty()
+            &&
+            property_exists(get_class(), $key)
+            &&
+            empty($this->{$key})
+        );
     }
 
     /**
@@ -210,14 +296,6 @@ trait FormRequestAccessor
             }
 
             $return_value = $this->{$method}();
-            // 返却値が NULL のアクセサは出力しない設定かどうか
-            if ($this->checkExistNullDisabledProperty() && is_null($return_value)) {
-                continue;
-            }
-            // 返却値が empty のアクセサは出力しない設定かどうか
-            if ($this->checkExistEmptyDisabledProperty() && empty($return_value)) {
-                continue;
-            }
 
             $this->merge([
                 $match[0] => $return_value,
@@ -253,6 +331,7 @@ trait FormRequestAccessor
      * $fill プロパティが存在しているかチェック
      *
      * @return bool
+     * @test
      */
     private function checkExistFillProperty(): bool
     {
@@ -267,13 +346,14 @@ trait FormRequestAccessor
      * $guarded プロパティが存在しているかチェック
      *
      * @return bool
+     * @test
      */
     private function checkExistGuardedProperty(): bool
     {
         return (
             property_exists(get_class(), 'guarded')
             &&
-            is_array($this->guarded) && !empty($this->guarded)
+            !empty($this->guarded) && is_array($this->guarded)
         );
     }
 
@@ -281,6 +361,7 @@ trait FormRequestAccessor
      * $casts プロパティが存在しているかチェック
      *
      * @return bool
+     * @test
      */
     private function checkExistCastsProperty(): bool
     {
@@ -295,6 +376,7 @@ trait FormRequestAccessor
      * $null_disabled プロパティが存在しているかチェック
      *
      * @return bool
+     * @test
      */
     private function checkExistNullDisabledProperty(): bool
     {
@@ -309,6 +391,7 @@ trait FormRequestAccessor
      * $empty_disabled プロパティが存在しているかチェック
      *
      * @return bool
+     * @test
      */
     private function checkExistEmptyDisabledProperty(): bool
     {
@@ -320,9 +403,40 @@ trait FormRequestAccessor
     }
 
     /**
+     * $disabled プロパティが存在しているかチェック
+     *
+     * @return bool
+     * @test
+     */
+    private function checkExistDisabledProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'disabled')
+            &&
+            !empty($this->disabled) && is_array($this->disabled)
+        );
+    }
+
+    /**
+     * $enabled プロパティが存在しているかチェック
+     *
+     * @return bool
+     * @test
+     */
+    private function checkExistEnabledProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'enabled')
+            &&
+            !empty($this->enabled) && is_array($this->enabled)
+        );
+    }
+
+    /**
      * 対象リクエストクラスのアクセサメソッドを取得
      *
      * @return array
+     * @test
      */
     private function getThisClassAccessorMethods(): array
     {
@@ -336,6 +450,7 @@ trait FormRequestAccessor
      *
      * @param  string  $key
      * @return bool
+     * @test
      */
     private function checkThisFunctionCall(string $key): bool
     {
@@ -349,6 +464,7 @@ trait FormRequestAccessor
      *
      * @param  string  $key
      * @return string
+     * @test
      */
     private function camelMethod(string $key): string
     {

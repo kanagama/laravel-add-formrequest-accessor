@@ -118,4 +118,37 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
         $response = $this->refrectionClass('checkExistCastsProperty', []);
         $this->assertTrue($response);
     }
+
+    /**
+     * $fill が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckFillProperty()
+    {
+        $response = $this->refrectionClass('checkExistFillProperty', []);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * $enabled が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckEnabledProperty()
+    {
+        $response = $this->refrectionClass('checkExistEnabledProperty', []);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * $disabled が存在した場合、true になるか
+     *
+     * @test
+     */
+    public function getCheckDisabledProperty()
+    {
+        $response = $this->refrectionClass('checkExistDisabledProperty', []);
+        $this->assertTrue($response);
+    }
 }

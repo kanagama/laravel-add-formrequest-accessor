@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanagama\FormRequestAccessor;
+namespace Kanagama\FormRequestAccessor\TestTraits;
 
 trait TestAttributeFunctionTrait
 {
