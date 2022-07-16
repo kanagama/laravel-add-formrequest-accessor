@@ -9,6 +9,7 @@ trait RefrectionClassTrait
 {
     /**
      * private, protected の function もテスト出来るようにする
+     * プロパティあり
      *
      * @param  string  $methodName
      * @param  array  $params
@@ -24,6 +25,7 @@ trait RefrectionClassTrait
 
             protected $null_disabled = true;
             protected $empty_disabled = true;
+            protected $immutable = true;
             protected $casts = [
                 'test_casts',
             ];
@@ -38,6 +40,83 @@ trait RefrectionClassTrait
             ];
             protected $disabled = [
                 'test_disabled',
+            ];
+
+            public function passedValidation() {}
+            public function all($key = null) {
+                return [];
+            }
+            public function input($key = null, $default = null) {
+                return null;
+            }
+        };
+
+        // ReflectionClassをテスト対象のクラスを元に作る.
+        $reflection = new ReflectionClass($formRequestAccessor);
+        // 対象メソッド取得
+        $method = $reflection->getMethod($methodName);
+        // アクセス許可
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($formRequestAccessor, $params);
+    }
+
+    /**
+     * private, protected の function もテスト出来るようにする
+     * プロパティ無し
+     *
+     * @param  string  $methodName
+     * @param  array  $params
+     * @return mixed
+     *
+     * @see https://qiita.com/ponsuke0531/items/6dc6fc34fff1e9b37901
+     */
+    public function refrectionClassNoProperty(string $methodName, array $params)
+    {
+        // テスト用の無名クラスを定義
+        $formRequestAccessor = new class {
+            use FormRequestAccessor, TestAttributeFunctionTrait;
+
+            public function passedValidation() {}
+            public function all($key = null) {
+                return [];
+            }
+            public function input($key = null, $default = null) {
+                return null;
+            }
+        };
+
+        // ReflectionClassをテスト対象のクラスを元に作る.
+        $reflection = new ReflectionClass($formRequestAccessor);
+        // 対象メソッド取得
+        $method = $reflection->getMethod($methodName);
+        // アクセス許可
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($formRequestAccessor, $params);
+    }
+
+    /**
+     * cast が正常に行われるかチェック
+     *
+     * @param  string  $methodName
+     * @param  array  $params
+     * @return mixed
+     *
+     * @see https://qiita.com/ponsuke0531/items/6dc6fc34fff1e9b37901
+     */
+    public function refrectionClassCastProperty(string $methodName, array $params)
+    {
+        // テスト用の無名クラスを定義
+        $formRequestAccessor = new class {
+            use FormRequestAccessor, TestAttributeFunctionTrait;
+
+            protected $casts = [
+                'cast_int'        => 'integer',
+                'cast_string'     => 'string',
+                'cast_bool_false' => 'bool',
+                'cast_bool_true'  => 'bool',
+                'cast_datetime'   => 'datetime',
             ];
 
             public function passedValidation() {}
@@ -92,7 +171,7 @@ trait RefrectionClassTrait
      */
     public function getCastStringAttribute(): int
     {
-        return $this->getIntAttribute();;
+        return $this->getIntAttribute();
     }
 
     /**
@@ -108,7 +187,7 @@ trait RefrectionClassTrait
      */
     public function getCastBoolTrueAttribute(): int
     {
-        return $this->getIntAttribute();;
+        return $this->getIntAttribute();
     }
 
     /**

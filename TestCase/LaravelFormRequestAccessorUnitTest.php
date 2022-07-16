@@ -6,20 +6,18 @@ use Kanagama\FormRequestAccessor\TestTraits\RefrectionClassTrait;
 use Tests\TestCase;
 
 /**
- * @method castAttributeString()
+ * @author k-nagama <k.nagama0632@gmail.com>
  */
 class LaravelFormRequestAccessorUnitTest extends TestCase
 {
     use RefrectionClassTrait;
 
     /**
-     * string 型に変換されているか
-     *
      * @test
      *
      * @dataProvider camelCaseProvider
      */
-    public function camelCase(...$params)
+    public function スネークケースファンクション名をキャメルケースに変換(...$params)
     {
         $request = $params[0];
         $camel_case = $params[1];
@@ -52,11 +50,9 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     }
 
     /**
-     * アクセサが同じアクセサから呼び出されているか
-     *
      * @test
      */
-    public function checkThisFunctionCallFalse()
+    public function アクセサが同じアクセサから呼び出されている()
     {
         $response = $this->refrectionClass('checkThisFunctionCall', [
             'test',
@@ -65,90 +61,155 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     }
 
     /**
-     * attribute メソッドが取得できるかどうか
-     *
      * @test
      */
-    public function checkGetThisClassAccessorMethods()
+    public function Attributeファンクションが存在していればTrue()
     {
         $response = $this->refrectionClass('getThisClassAccessorMethods', []);
         $this->assertNotEmpty($response);
     }
 
     /**
-     * $empty_disabled が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckExistEmptyDisabledProperty()
+    public function empty_disabledプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistEmptyDisabledProperty', []);
         $this->assertTrue($response);
     }
 
     /**
-     * $null_disabled が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckExistNullDisabledProperty()
+    public function empty_disabledプロパティが存在しなければFalse()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistEmptyDisabledProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function null_disabledプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistNullDisabledProperty', []);
         $this->assertTrue($response);
     }
 
     /**
-     * $casts が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckCastsProperty()
+    public function null_disabledプロパティが存在しなければFalse()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistNullDisabledProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function immutableプロパティが設定されていればTrue()
+    {
+        $response = $this->refrectionClass('checkExistImmutableProperty', []);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * @test
+     */
+    public function immutableプロパティが存在しなければFalse()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistImmutableProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function castプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistCastsProperty', []);
         $this->assertTrue($response);
     }
 
     /**
-     * $guarded が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckGuardedProperty()
+    public function castプロパティが存在しなければFalse()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistCastsProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function guardプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistCastsProperty', []);
         $this->assertTrue($response);
     }
 
     /**
-     * $fill が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckFillProperty()
+    public function guardプロパティが存在しなければFalse()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistCastsProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function fillプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistFillProperty', []);
         $this->assertTrue($response);
     }
 
     /**
-     * $enabled が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckEnabledProperty()
+    public function fillプロパティが存在しなければFalse()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistFillProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function enabledプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistEnabledProperty', []);
         $this->assertTrue($response);
     }
 
     /**
-     * $disabled が存在した場合、true になるか
-     *
      * @test
      */
-    public function getCheckDisabledProperty()
+    public function enabledプロパティが存在しない場合False()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistEnabledProperty', []);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function disabledプロパティが設定されていればTrue()
     {
         $response = $this->refrectionClass('checkExistDisabledProperty', []);
         $this->assertTrue($response);
+    }
+
+    /**
+     * @test
+     */
+    public function disabledプロパティが存在しない場合False()
+    {
+        $response = $this->refrectionClassNoProperty('checkExistDisabledProperty', []);
+        $this->assertFalse($response);
     }
 }

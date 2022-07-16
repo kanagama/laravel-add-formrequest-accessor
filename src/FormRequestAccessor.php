@@ -3,6 +3,7 @@
 namespace Kanagama\FormRequestAccessor;
 
 use Illuminate\Support\Str;
+use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
 use Kanagama\FormRequestAccessor\Models\CastModel;
 
 /**
@@ -22,7 +23,7 @@ trait FormRequestAccessor
      * 変更前の Request クラス
      */
     private static $beforeRequest;
-    private static $process = false;
+    private static $process = true;
 
     /**
      * アクセサ追加前の all() を取得
@@ -43,6 +44,7 @@ trait FormRequestAccessor
     {
         dd([
             'settings' => [
+                'immutable'      => $this->checkExistImmutableProperty() ? $this->immutable : null,
                 'fill'           => $this->checkExistFillProperty() ? $this->fill : null,
                 'guarded'        => $this->checkExistGuardedProperty() ? $this->guarded : null,
                 'casts'          => $this->checkExistCastsProperty() ? $this->casts : null,
@@ -158,6 +160,22 @@ trait FormRequestAccessor
     {
         return self::$beforeRequest;
     }
+
+    /**
+     * immutable が設定されている場合、merge() を利用不可
+     *
+     * @param  array  $input
+     * @return $this
+     */
+    public function merge($input): self
+    {
+        if (self::$process || !$this->checkExistImmutableProperty()) {
+            return parent::merge($input);
+        }
+
+        throw new ImmutableException();
+    }
+
 
     /**
      * 未定義プロパティへのアクセス
@@ -338,7 +356,7 @@ trait FormRequestAccessor
         return (
             property_exists(get_class(), 'fill')
             &&
-            is_array($this->fill) && !empty($this->fill)
+            !empty($this->fill) && is_array($this->fill)
         );
     }
 
@@ -384,6 +402,21 @@ trait FormRequestAccessor
             property_exists(get_class(), 'null_disabled')
             &&
             $this->null_disabled
+        );
+    }
+
+    /**
+     * $immutable プロパティが存在しているかチェック
+     *
+     * @return bool
+     * @test
+     */
+    private function checkExistImmutableProperty(): bool
+    {
+        return (
+            property_exists(get_class(), 'immutable')
+            &&
+            $this->immutable
         );
     }
 
