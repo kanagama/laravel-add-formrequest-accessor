@@ -14,7 +14,7 @@ use Kanagama\FormRequestAccessor\FormRequestAccessor;
  *
  * @author k-nagama <k.nagama0632@gmail.com>
  */
-class TestCastRequest extends FormRequest
+class TestCastsRequest extends FormRequest
 {
     use FormRequestAccessor;
 

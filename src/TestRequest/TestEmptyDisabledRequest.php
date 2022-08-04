@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
 
 /**
+ * @property-read int $accessor_int
+ * @property-read string $accessor_string
+ *
  * @author k-nagama <k.nagama0632@gmail.com>
  */
 class TestEmptyDisabledRequest extends FormRequest

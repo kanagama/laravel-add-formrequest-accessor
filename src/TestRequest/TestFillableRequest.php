@@ -10,19 +10,19 @@ use Kanagama\FormRequestAccessor\FormRequestAccessor;
  *
  * @author k-nagama <k.nagama0632@gmail.com>
  */
-class TestDisabledRequest extends FormRequest
+class TestFillableRequest extends FormRequest
 {
     use FormRequestAccessor;
 
-    protected $disabled = [
-        'accessor_disabled',
-        'test_disabled',
+    protected $fillable = [
+        'accessor_fillable',
+        'test_fillable',
     ];
 
     /**
      * @return int
      */
-    public function getAccessorDisabledAttribute(): int
+    public function getAccessorFillableAttribute(): int
     {
         return 1;
     }
@@ -30,7 +30,7 @@ class TestDisabledRequest extends FormRequest
     /**
      * @return int
      */
-    public function getAccessorEnabledAttribute(): int
+    public function getAccessorGuardedAttribute(): int
     {
         return 1;
     }

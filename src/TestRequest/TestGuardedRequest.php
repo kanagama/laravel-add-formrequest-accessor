@@ -6,23 +6,27 @@ use Illuminate\Foundation\Http\FormRequest;
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
 
 /**
+ * @property-read int $accessor_guarded
  * @property-read int $accessor_int
- * @property-read string $accessor_string_empty
+ * @property-read string $accessor_string
  *
  * @author k-nagama <k.nagama0632@gmail.com>
  */
-class TestNullDisabledRequest extends FormRequest
+class TestGuardedRequest extends FormRequest
 {
     use FormRequestAccessor;
 
-    protected $null_disabled = true;
+    protected $guarded = [
+        'accessor_guarded',
+        'test_guarded',
+    ];
 
     /**
-     * @return null
+     * @return string
      */
-    public function getAccessorNullAttribute()
+    public function getAccessorGuardedAttribute(): string
     {
-        return null;
+        return 'a';
     }
 
     /**
@@ -36,8 +40,8 @@ class TestNullDisabledRequest extends FormRequest
     /**
      * @return string
      */
-    public function getAccessorStringEmptyAttribute(): string
+    public function getAccessorStringAttribute(): string
     {
-        return '';
+        return '1';
     }
 }

@@ -35,6 +35,9 @@ trait RefrectionClassTrait
             protected $fill = [
                 'test_fill',
             ];
+            protected $fillable = [
+                'test_fillable',
+            ];
             protected $enabled = [
                 'test_enabled',
             ];
@@ -118,6 +121,50 @@ trait RefrectionClassTrait
                 'cast_bool_true'  => 'bool',
                 'cast_datetime'   => 'datetime',
             ];
+
+            public function passedValidation() {}
+            public function all($key = null) {
+                return [];
+            }
+            public function input($key = null, $default = null) {
+                return null;
+            }
+        };
+
+        // ReflectionClassをテスト対象のクラスを元に作る.
+        $reflection = new ReflectionClass($formRequestAccessor);
+        // 対象メソッド取得
+        $method = $reflection->getMethod($methodName);
+        // アクセス許可
+        $method->setAccessible(true);
+
+        return $method->invokeArgs($formRequestAccessor, $params);
+    }
+
+    /**
+     * cast が正常に行われるかチェック
+     *
+     * @param  string  $methodName
+     * @param  array  $params
+     * @return mixed
+     *
+     * @see https://qiita.com/ponsuke0531/items/6dc6fc34fff1e9b37901
+     */
+    public function refrectionClassExceptionProperty(string $methodName, array $params)
+    {
+        // テスト用の無名クラスを定義
+        $formRequestAccessor = new class {
+            use FormRequestAccessor, TestAttributeFunctionTrait;
+
+            protected $null_disabled = [];
+            protected $empty_disabled = [];
+            protected $immutable = [];
+            protected $casts = false;
+            protected $guarded = false;
+            protected $fill = false;
+            protected $fillable = false;
+            protected $enabled = false;
+            protected $disabled = false;
 
             public function passedValidation() {}
             public function all($key = null) {
