@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
 use Kanagama\FormRequestAccessor\Exceptions\UnsupportedOperandTypesException;
 use Kanagama\FormRequestAccessor\Models\CastModel;
+use Illuminate\Support\Facades\Route;
 
 /**
  * FormRequest に accessor 機能を付与
@@ -16,6 +17,8 @@ use Kanagama\FormRequestAccessor\Models\CastModel;
  * @method mixed input(mixed $key = null, mixed $default = null)
  * @method mixed __get(mixed $key)
  * @method void validateResolved()
+ * @method string getController()
+ * @method string getAction()
  *
  * @author k.nagama <k.nagama0632@gmail.com>
  */
@@ -499,6 +502,39 @@ trait FormRequestAccessor
                 $match[0] => $return_value,
             ]);
         }
+    }
+
+    /**
+     * コントローラー名を取得
+     * 
+     * @return string
+     */
+    public function getController(): string
+    {
+        $route = Route::currentRouteAction();
+        if (empty($route) || strpos($route, '@') === false) {
+            return '';
+        }
+
+        $namespace_controller = explode("@", $route)[0];
+        $namespaces = explode("\\", $namespace_controller);
+
+        return end($namespaces);
+    }
+
+    /**
+     * アクション名を取得
+     * 
+     * @return string
+     */
+    public function getAction(): string
+    {
+        $route = Route::currentRouteAction();
+        if (empty($route) || strpos($route, '@') === false) {
+            return '';
+        }
+
+        return explode("@", $route)[1];
     }
 
     /**

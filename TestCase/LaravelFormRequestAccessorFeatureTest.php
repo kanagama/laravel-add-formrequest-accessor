@@ -13,6 +13,7 @@ use Kanagama\FormRequestAccessor\TestRequest\TestGuardedRequest;
 use Kanagama\FormRequestAccessor\TestRequest\TestImmutableRequest;
 use Kanagama\FormRequestAccessor\TestRequest\TestNullDisabledRequest;
 use Kanagama\FormRequestAccessor\TestRequest\TestRequest;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 /**
@@ -102,6 +103,9 @@ class LaravelFormRequestAccessorFeatureTest extends TestCase
             'test'          => 1,
         ]);
         $this->testGuardedRequest->passedValidation();
+
+        Route::shouldReceive('currentRouteAction')
+            ->andReturn('App\Controller\TestController@index');
     }
 
     /**
@@ -529,5 +533,22 @@ class LaravelFormRequestAccessorFeatureTest extends TestCase
     {
         $this->assertEquals($this->testGuardedRequest->test_guarded, 1);
         $this->assertEquals($this->testGuardedRequest->accessor_guarded, 'a');
+    }
+
+
+    /**
+     * @test
+     */
+    public function getControllerで正常にコントローラー名が取得できる()
+    {
+        $this->assertNotEmpty($this->testGuardedRequest->getController());
+    }
+
+    /**
+     * @test
+     */
+    public function getActionで正常にアクション名が取得できる()
+    {
+        $this->assertNotEmpty($this->testGuardedRequest->getAction());
     }
 }
