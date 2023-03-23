@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  #
+  php74_add_formrequest_accessor_development:
+    container_name: php74_add_formrequest_accessor_development
+    build:
+      context: .
+      dockerfile: ./.docker/dockerfile/PHP74_Dockerfile
+    volumes:
+      - .:/var/www/html
+    restart: unless-stopped
+    init: true
+    command: >
+      bash -c '
+        composer update;
+        tail -f /dev/null;
+      '

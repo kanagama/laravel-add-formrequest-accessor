@@ -164,7 +164,7 @@ trait FormRequestAccessor
      * @param  mixed|null  $default
      * @return mixed
      */
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         return $this->getData($key, $default, parent::get($key));
     }
@@ -506,7 +506,7 @@ trait FormRequestAccessor
 
     /**
      * コントローラー名を取得
-     * 
+     *
      * @return string
      */
     public function getController(): string
@@ -524,7 +524,7 @@ trait FormRequestAccessor
 
     /**
      * アクション名を取得
-     * 
+     *
      * @return string
      */
     public function getAction(): string

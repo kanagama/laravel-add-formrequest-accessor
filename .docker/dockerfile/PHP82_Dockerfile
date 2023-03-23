@@ -1,0 +1,24 @@
+FROM php:8.2.3
+
+WORKDIR /var/www/html
+
+# PHP実行・デバッグ用、MySQL連携用、作業用で必要なライブラリをインストール
+RUN apt-get update \
+    && apt-get install -y \
+    libonig-dev \
+    libzip-dev \
+    unzip \
+    libxml2 \
+    zlib1g-dev \
+    openssl \
+    vim \
+    && docker-php-ext-install \
+    pdo_mysql \
+    mbstring \
+    zip \
+    bcmath
+
+# composer install
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
+    php -r "unlink('composer-setup.php');"

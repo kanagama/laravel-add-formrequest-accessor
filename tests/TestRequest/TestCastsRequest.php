@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanagama\FormRequestAccessor\TestRequest;
+namespace Kanagama\FormRequestAccessor\Tests\TestRequest;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;

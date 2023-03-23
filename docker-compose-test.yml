@@ -1,0 +1,51 @@
+version: "3.8"
+services:
+  php74_add_formrequest_accessor:
+    container_name: php74_add_formrequest_accessor
+    build:
+      context: .
+      dockerfile: ./.docker/dockerfile/PHP74_Dockerfile
+    volumes:
+      - .:/var/www/html
+    init: true
+    # restart: unless-stopped
+    command: ./.docker/command/test.sh
+
+  php80_add_formrequest_accessor:
+    container_name: php80_add_formrequest_accessor
+    build:
+      context: .
+      dockerfile: ./.docker/dockerfile/PHP80_Dockerfile
+    volumes:
+      - .:/var/www/html
+    init: true
+    # restart: unless-stopped
+    command: ./.docker/command/test.sh
+    depends_on:
+      - php74_add_formrequest_accessor
+
+  php81_add_formrequest_accessor:
+    container_name: php81_add_formrequest_accessor
+    build:
+      context: .
+      dockerfile: ./.docker/dockerfile/PHP81_Dockerfile
+    volumes:
+      - .:/var/www/html
+    init: true
+    # restart: unless-stopped
+    command: ./.docker/command/test.sh
+    depends_on:
+      - php80_add_formrequest_accessor
+
+  php82_add_formrequest_accessor:
+    container_name: php82_add_formrequest_accessor
+    build:
+      context: .
+      dockerfile: ./.docker/dockerfile/PHP82_Dockerfile
+    volumes:
+      - .:/var/www/html
+    init: true
+    # restart: unless-stopped
+    command: ./.docker/command/test.sh
+    depends_on:
+      - php81_add_formrequest_accessor
