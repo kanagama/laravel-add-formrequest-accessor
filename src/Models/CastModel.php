@@ -29,7 +29,7 @@ class CastModel extends Model
      *
      * @param  mixed  $key
      * @param  mixed  $value
-     * @return void
+     * @return mixed
      */
     public function castAttribute($key, $value)
     {
