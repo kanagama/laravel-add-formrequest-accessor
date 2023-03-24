@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanagama\FormRequestAccessor\TestTraits;
+namespace Kanagama\FormRequestAccessor\Tests\TestTraits;
 
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
 use ReflectionClass;

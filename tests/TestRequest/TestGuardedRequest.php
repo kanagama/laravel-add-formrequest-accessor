@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanagama\FormRequestAccessor\TestRequest;
+namespace Kanagama\FormRequestAccessor\Tests\TestRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Kanagama\FormRequestAccessor\FormRequestAccessor;

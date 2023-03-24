@@ -1,20 +1,20 @@
 <?php
 
-namespace Tests\Feature;
+namespace Kanagama\FormRequestAccessor\Tests\Feature;
 
 use Carbon\Carbon;
-use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
-use Kanagama\FormRequestAccessor\TestRequest\TestCastsRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestDisabledRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestEmptyDisabledRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestEnabledRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestFillableRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestGuardedRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestImmutableRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestNullDisabledRequest;
-use Kanagama\FormRequestAccessor\TestRequest\TestRequest;
 use Illuminate\Support\Facades\Route;
-use Tests\TestCase;
+use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestCastsRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestDisabledRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestEmptyDisabledRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestEnabledRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestFillableRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestGuardedRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestImmutableRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestNullDisabledRequest;
+use Kanagama\FormRequestAccessor\Tests\TestRequest\TestRequest;
+use Kanagama\FormRequestAccessor\Tests\TestCase;
 
 /**
  * @author k-nagama <k.nagama0632@gmail.com>

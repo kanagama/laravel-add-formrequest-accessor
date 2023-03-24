@@ -1,0 +1,45 @@
+name: PHPUnit test
+
+on:
+  pull_request:
+
+jobs:
+  phpunit-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [8.0, 8.1, 8.2]
+        library:
+          - { laravel: ^10.0 }
+          - { laravel: ^9.0 }
+          - { laravel: ^8.0 }
+        exclude:
+          - { php: 8.0, library: { laravel: ^10.0 } }
+          - { php: 8.1, library: { laravel: ^8.0 } }
+          - { php: 8.2, library: { laravel: ^8.0 } }
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php }}
+        extensions: mbstring, zip, xml
+
+    - name: Laravel Install
+      run: |
+        composer require --dev "laravel/framework:${{ matrix.library.laravel }}"
+
+    - name: Run PHPUnit Test
+      # phpunit が 9.3 以降は phpunit.xml のフォーマットが変わっており、非推奨の warning が出る
+      # 新しいフォーマットに変換するコマンドを実行する
+      # ここでのエラーは重要ではないため、「 || true」を付与してエラーでも続ける
+      run: |
+        if [[ ${{ matrix.php }} == "8.1" || ${{ matrix.php }} == "8.2" ]]; then
+          vendor/bin/phpunit --migrate-configuration || true
+        fi
+        vendor/bin/phpunit
