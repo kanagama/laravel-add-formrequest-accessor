@@ -20,7 +20,8 @@
     "require-dev": {
         "phpunit/phpunit": "^9.0 | ^10.0",
         "orchestra/testbench": "*",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^1.10",
+        "phpmetrics/phpmetrics": "^2.8"
     },
     "autoload": {
         "psr-4": {
