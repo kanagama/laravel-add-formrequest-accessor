@@ -13,7 +13,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "<!channel>\n${{ github.event.pull_request.user.login }}です。お疲れ様です。\nお手すきの際にレビューお願いいたします。\n\n【${{ github.event.pull_request.title }}】\n${{ github.event.pull_request.html_url }}\n```{{ github.event.pull_request.body }}```"
+              "text": "<!channel>\n${{ github.event.pull_request.user.login }}です。お疲れ様です。\nお手すきの際にレビューお願いいたします。\n\n【${{ github.event.pull_request.title }}】\n${{ github.event.pull_request.html_url }}\n```${{ github.event.pull_request.body }}```"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
