@@ -1,0 +1,22 @@
+name: Notify pull requests to slack
+
+on:
+  workflow_call:
+    # secrets を共有
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
+
+jobs:
+  pullrequest_notify_slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack Workflow
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {
+              "text": "<!channel>\n${{ github.event.pull_request.user.login }}です。お疲れ様です。\nお手すきの際にレビューお願いいたします。\n\n【${{ github.event.pull_request.title }}】\n${{ github.event.pull_request.html_url }}\n```${{ github.event.pull_request.body }}```"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
