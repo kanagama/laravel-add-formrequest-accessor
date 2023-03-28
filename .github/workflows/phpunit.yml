@@ -1,7 +1,7 @@
 name: PHPUnit test
 
 on:
-  pull_request:
+  workflow_call:
 
 jobs:
   phpunit-test:
@@ -22,7 +22,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2.4.2
 
     - name: Install PHP
       uses: shivammathur/setup-php@v2
@@ -35,9 +35,6 @@ jobs:
         composer require --dev "laravel/framework:${{ matrix.library.laravel }}"
 
     - name: Run PHPUnit Test
-      # phpunit が 9.3 以降は phpunit.xml のフォーマットが変わっており、非推奨の warning が出る
-      # 新しいフォーマットに変換するコマンドを実行する
-      # ここでのエラーは重要ではないため、「 || true」を付与してエラーでも続ける
       run: |
         if [[ ${{ matrix.php }} == "8.1" || ${{ matrix.php }} == "8.2" ]]; then
           vendor/bin/phpunit --migrate-configuration || true

@@ -1,0 +1,21 @@
+name: PR Workflow
+
+on:
+  pull_request:
+    # プルリクオープン・リオープン・編集
+    types: [opened, reopened, synchronize]
+
+jobs:
+  phpunit:
+    uses: ./.github/workflows/phpunit.yml
+  static_analysis:
+    uses: ./.github/workflows/static_analysis.yml
+  slack_notify:
+    needs: [phpunit, static_analysis]
+    if: >
+      (needs.phpunit.result == 'success') &&
+      (needs.static_analysis.result == 'success') &&
+      (github.event.action != 'synchronize')
+    uses: ./.github/workflows/pullrequest_notify_slack.yml
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

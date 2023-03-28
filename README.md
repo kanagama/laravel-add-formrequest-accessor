@@ -109,3 +109,16 @@ protected $casts = [
     'view_flg'  => 'bool',
 ];
 ```
+
+## test
+
+php vendor/bin/phpunit
+
+## analysis
+
+vendor/bin/phpstan analyse -l 3 src/
+
+## metrics
+
+php ./vendor/bin/phpmetrics --report-html=phpmetrics src/
+
