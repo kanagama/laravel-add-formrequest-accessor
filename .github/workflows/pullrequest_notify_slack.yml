@@ -5,7 +5,7 @@ on:
     types: [opened, reopened]
 
 jobs:
-  slack_notify:
+  pullrequest_notify_slack:
     runs-on: ubuntu-latest
     steps:
       - name: Slack Workflow
