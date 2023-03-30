@@ -15,6 +15,9 @@ class TestNullDisabledRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var bool
+     */
     protected $null_disabled = true;
 
     /**

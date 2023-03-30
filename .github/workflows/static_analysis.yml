@@ -14,7 +14,7 @@ jobs:
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.4'
+        php-version: '8.0'
         extensions: mbstring, zip, xml
 
     - name: Install Composer
@@ -29,6 +29,18 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libonig-dev libzip-dev unzip libxml2 zlib1g-dev
 
-    - name: Run Static Analysis
+    - name: Use ReviewDog
+      uses: reviewdog/action-setup@v1
+      with:
+        reviewdog_version: latest
+
+    - name: Run Static Analysis And Bot Review
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        php vendor/bin/phpstan analyse -l 3 src/
+        CHANGED_FILES=$(git diff --name-only --cached --diff-filter=AM | grep '\.php' || true)
+        if [ -n "$CHANGED_FILES" ]; then
+          php vendor/bin/phpstan analyse -l 3 --error-format=raw --no-progress $CHANGED_FILES | reviewdog -reporter=github-pr-review -f=phpstan
+        else
+          echo "No changed PHP files found. Skipping static analysis."
+        fi

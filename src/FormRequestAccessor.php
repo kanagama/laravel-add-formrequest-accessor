@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
  * @method void validateResolved()
  * @method string getController()
  * @method string getAction()
+ * @method array validated(mixed $key = null, mixed $default = null)
  *
  * @author k.nagama <k.nagama0632@gmail.com>
  */
@@ -32,6 +33,11 @@ trait FormRequestAccessor
     private static $process = true;
 
     private static $requestProperties;
+
+    /**
+     * @var array
+     */
+    private static array $accessors = [];
 
     /**
      * アクセサ追加前の all() を取得
@@ -62,6 +68,7 @@ trait FormRequestAccessor
                 'casts'          => $this->getCastsProperty(),
                 'null_disabled'  => $this->getNullDisabledProperty(),
                 'empty_disabled' => $this->getEmptyDisabledProperty(),
+                'validated'      => $this->getValidatedAccessorProperty(),
             ],
             'all' => [
                 'before_all' => $this->beforeAll(),
@@ -200,6 +207,19 @@ trait FormRequestAccessor
         $this->afterValidation();
 
         $this->endRequest();
+    }
+
+    /**
+     * @return array
+     */
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated($key, $default);
+        if (!$this->getValidatedAccessorProperty()) {
+            return $validated;
+        }
+
+        return array_merge($validated, self::$accessors);
     }
 
     /**
@@ -490,17 +510,19 @@ trait FormRequestAccessor
                 continue;
             }
 
-            $return_value = $this->{$method}();
-            if ($this->getNullDisabledProperty() && is_null($return_value)) {
+            $returnValue = $this->{$method}();
+            if ($this->getNullDisabledProperty() && is_null($returnValue)) {
                 continue;
             }
-            if ($this->getEmptyDisabledProperty() && empty($return_value)) {
+            if ($this->getEmptyDisabledProperty() && empty($returnValue)) {
                 continue;
             }
 
             $this->merge([
-                $match[0] => $return_value,
+                $match[0] => $returnValue,
             ]);
+
+            self::$accessors[$match[0]] = $returnValue;
         }
     }
 
@@ -716,6 +738,24 @@ trait FormRequestAccessor
 
         if (is_bool($this->immutable)) {
             return $this->immutable;
+        }
+
+        throw new UnsupportedOperandTypesException();
+    }
+
+    /**
+     * $validated プロパティを取得
+     *
+     * @return bool
+     */
+    private function getValidatedAccessorProperty(): bool
+    {
+        if (!property_exists(get_class(), 'validated_accessor')) {
+            return false;
+        }
+
+        if (is_bool($this->validated_accessor)) {
+            return $this->validated_accessor;
         }
 
         throw new UnsupportedOperandTypesException();

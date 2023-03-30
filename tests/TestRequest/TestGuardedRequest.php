@@ -16,6 +16,9 @@ class TestGuardedRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var array
+     */
     protected $guarded = [
         'accessor_guarded',
         'test_guarded',

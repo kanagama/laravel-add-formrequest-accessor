@@ -18,6 +18,9 @@ class TestCastsRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var array
+     */
     protected $casts = [
         'int'         => 'integer',
         'cast_int'    => 'integer',

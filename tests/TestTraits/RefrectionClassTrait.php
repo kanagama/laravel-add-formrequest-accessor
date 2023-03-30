@@ -26,6 +26,7 @@ trait RefrectionClassTrait
             protected $null_disabled = true;
             protected $empty_disabled = true;
             protected $immutable = true;
+            protected $validated_accessor = true;
             protected $casts = [
                 'test_casts',
             ];
@@ -159,6 +160,7 @@ trait RefrectionClassTrait
             protected $null_disabled = [];
             protected $empty_disabled = [];
             protected $immutable = [];
+            protected $validated_accessor = [];
             protected $casts = false;
             protected $guarded = false;
             protected $fill = false;

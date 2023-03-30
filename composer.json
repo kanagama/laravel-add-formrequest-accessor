@@ -33,5 +33,11 @@
             "Kanagama\\FormRequestAccessor\\Tests\\": "tests/"
         }
     },
+    "exclude": [
+        "tests/",
+        ".docker/",
+        ".github/",
+        "*.md"
+    ],
     "minimum-stability": "stable"
 }

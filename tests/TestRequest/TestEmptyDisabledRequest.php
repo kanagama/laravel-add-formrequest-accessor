@@ -15,6 +15,9 @@ class TestEmptyDisabledRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var bool
+     */
     protected $empty_disabled = true;
 
     /**

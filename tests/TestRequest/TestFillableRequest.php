@@ -14,6 +14,9 @@ class TestFillableRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var array
+     */
     protected $fillable = [
         'accessor_fillable',
         'test_fillable',
