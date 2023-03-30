@@ -29,6 +29,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libonig-dev libzip-dev unzip libxml2 zlib1g-dev
 
-    - name: Run Static Analysis
+    - name: Use ReviewDog
+      uses: reviewdog/action-setup@v1
+      with:
+        reviewdog_version: latest
+
+    - name: Run Static Analysis And Bot Review
+      env:
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        php vendor/bin/phpstan analyse -l 3 src/
+        php vendor/bin/phpstan analyse -l 3 --error-format=raw --no-progress src/ | reviewdog -reporter=github-pr-review -f=phpstan
