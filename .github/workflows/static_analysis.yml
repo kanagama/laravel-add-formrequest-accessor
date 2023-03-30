@@ -38,4 +38,9 @@ jobs:
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        php vendor/bin/phpstan analyse -l 3 --error-format=raw --no-progress src/ | reviewdog -reporter=github-pr-review -f=phpstan
+        CHANGED_FILES=$(git diff --name-only --cached --diff-filter=AM | grep '\.php' || true)
+        if [ -n "$CHANGED_FILES" ]; then
+          php vendor/bin/phpstan analyse -l 3 --error-format=raw --no-progress $CHANGED_FILES | reviewdog -reporter=github-pr-review -f=phpstan
+        else
+          echo "No changed PHP files found. Skipping static analysis."
+        fi
