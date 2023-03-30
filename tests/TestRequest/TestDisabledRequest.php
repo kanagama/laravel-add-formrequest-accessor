@@ -14,6 +14,9 @@ class TestDisabledRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var array
+     */
     protected $disabled = [
         'accessor_disabled',
         'test_disabled',

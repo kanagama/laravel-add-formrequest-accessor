@@ -73,6 +73,35 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     /**
      * @test
      */
+    public function validated_accessorプロパティが存在していればbool型が取得できる()
+    {
+        $response = $this->refrectionClass('getValidatedAccessorProperty', []);
+        $this->assertIsBool($response);
+        $this->assertTrue($response);
+    }
+
+    /**
+     * @test
+     */
+    public function validated_accessorプロパティが存在していなくてもbool型が取得できる()
+    {
+        $response = $this->refrectionClassNoProperty('getValidatedAccessorProperty', []);
+        $this->assertIsBool($response);
+        $this->assertFalse($response);
+    }
+
+    /**
+     * @test
+     */
+    public function validated_accessorプロパティの型が異なれば例外()
+    {
+        $this->expectException(UnsupportedOperandTypesException::class);
+        $this->refrectionClassExceptionProperty('getValidatedAccessorProperty', []);
+    }
+
+    /**
+     * @test
+     */
     public function empty_disabledプロパティが存在していればbool型が取得できる()
     {
         $response = $this->refrectionClass('getEmptyDisabledProperty', []);

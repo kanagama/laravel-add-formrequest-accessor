@@ -12,5 +12,8 @@ class TestImmutableRequest extends FormRequest
 {
     use FormRequestAccessor;
 
+    /**
+     * @var bool
+     */
     protected $immutable = true;
 }
