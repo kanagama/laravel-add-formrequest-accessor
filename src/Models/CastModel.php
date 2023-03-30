@@ -43,12 +43,4 @@ class CastModel extends Model
     {
         return $key;
     }
-
-    /**
-     * @param  string  $test
-     */
-    public function test(int $test): int
-    {
-        return $test;
-    }
 }
