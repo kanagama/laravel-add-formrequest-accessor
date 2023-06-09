@@ -3,11 +3,11 @@
 namespace Kanagama\FormRequestAccessor;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
 use Kanagama\FormRequestAccessor\Exceptions\UnsupportedOperandTypesException;
 use Kanagama\FormRequestAccessor\Models\CastModel;
-use Illuminate\Support\Facades\Route;
 
 /**
  * FormRequest に accessor 機能を付与
@@ -27,14 +27,25 @@ trait FormRequestAccessor
 {
     /**
      * 変更前の Request クラス
+     *
+     * @static
+     * @var FormRequest
      */
     private static $beforeRequest;
 
+    /**
+     * @static
+     * @var bool
+     */
     private static $process = true;
 
+    /**
+     * @static
+     */
     private static $requestProperties;
 
     /**
+     * @static
      * @var array
      */
     private static array $accessors = [];
@@ -252,7 +263,8 @@ trait FormRequestAccessor
      * immutable が設定されている場合、 merge() を利用不可
      *
      * @param  array  $input
-     * @return $this
+     * @return self
+     * @throws ImmutableException
      */
     public function merge($input): self
     {
@@ -267,7 +279,8 @@ trait FormRequestAccessor
      * immutable が設定されている場合、 replace() を利用不可
      *
      * @param  array  $input
-     * @return $this
+     * @return self
+     * @throws ImmutableException
      */
     public function replace(array $input): self
     {
@@ -282,7 +295,7 @@ trait FormRequestAccessor
      * immutable が設定されている場合、 offsetUnset() を利用不可
      *
      * @param  string  $offset
-     * @return void
+     * @throws ImmutableException
      */
     public function offsetUnset($offset): void
     {
@@ -298,7 +311,7 @@ trait FormRequestAccessor
      *
      * @param  string  $offset
      * @param  mixed  $value
-     * @return void
+     * @throws ImmutableException
      */
     public function offsetSet($offset, $value): void
     {
@@ -343,8 +356,6 @@ trait FormRequestAccessor
 
     /**
      * アクセサ実行前の処理
-     *
-     * @return void
      */
     public function prepareForAccessor()
     {
@@ -353,8 +364,6 @@ trait FormRequestAccessor
 
     /**
      * validation 終了後の処理
-     *
-     * @return void
      */
     public function afterValidation()
     {
@@ -416,8 +425,6 @@ trait FormRequestAccessor
 
     /**
      * 前処理（変更前の Request を複製）
-     *
-     * @return void
      */
     private function startRequest()
     {
@@ -426,8 +433,6 @@ trait FormRequestAccessor
 
     /**
      * 後処理
-     *
-     * @return void
      */
     private function endRequest()
     {
@@ -499,8 +504,6 @@ trait FormRequestAccessor
 
     /**
      * アクセサメソッドを追加
-     *
-     * @return void
      */
     private function addAccessorMethods()
     {
@@ -529,6 +532,7 @@ trait FormRequestAccessor
     /**
      * コントローラー名を取得
      *
+     * @test
      * @return string
      */
     public function getController(): string
@@ -547,6 +551,7 @@ trait FormRequestAccessor
     /**
      * アクション名を取得
      *
+     * @test
      * @return string
      */
     public function getAction(): string
@@ -561,8 +566,6 @@ trait FormRequestAccessor
 
     /**
      * model クラスの cast 処理を呼び出す
-     *
-     * @return void
      */
     private function callModelCast()
     {
@@ -586,8 +589,8 @@ trait FormRequestAccessor
     /**
      * 対象リクエストクラスのアクセサメソッドを取得
      *
-     * @return array
      * @test
+     * @return array
      */
     private function getThisClassAccessorMethods(): array
     {
@@ -599,9 +602,9 @@ trait FormRequestAccessor
     /**
      * アクセサから同じアクセサが呼び出されているかチェック
      *
+     * @test
      * @param  string  $key
      * @return bool
-     * @test
      */
     private function checkThisFunctionCall(string $key): bool
     {
@@ -613,9 +616,9 @@ trait FormRequestAccessor
     /**
      * キャメルケースに変換
      *
+     * @test
      * @param  string  $key
      * @return string
-     * @test
      */
     private function camelMethod(string $key): string
     {
@@ -642,7 +645,7 @@ trait FormRequestAccessor
     /**
      * 固定プロパティ名であれば true
      *
-     * @param  string $key
+     * @param  string  $key
      * @return bool
      */
     private function checkRequestPropertyName(string $key): bool
@@ -677,7 +680,7 @@ trait FormRequestAccessor
     /**
      * empty の プロパティを削除するかどうか
      *
-     * @param  string $key
+     * @param  string  $key
      * @return bool
      */
     private function checkDeleteEmptyProperty(string $key): bool
@@ -727,8 +730,9 @@ trait FormRequestAccessor
     /**
      * $immutable プロパティを取得
      *
-     * @return bool
      * @test
+     * @return bool
+     * @throws UnsupportedOperandTypesException
      */
     private function getImmutableProperty(): bool
     {
@@ -747,6 +751,7 @@ trait FormRequestAccessor
      * $validated プロパティを取得
      *
      * @return bool
+     * @throws UnsupportedOperandTypesException
      */
     private function getValidatedAccessorProperty(): bool
     {
@@ -764,8 +769,9 @@ trait FormRequestAccessor
     /**
      * $null_disabled プロパティを取得
      *
-     * @return bool
      * @test
+     * @return bool
+     * @throws UnsupportedOperandTypesException
      */
     private function getNullDisabledProperty(): bool
     {
@@ -783,8 +789,9 @@ trait FormRequestAccessor
     /**
      * $empty_disabled プロパティを取得
      *
-     * @return bool
      * @test
+     * @return bool
+     * @throws UnsupportedOperandTypesException
      */
     private function getEmptyDisabledProperty(): bool
     {
@@ -802,8 +809,9 @@ trait FormRequestAccessor
     /**
      * $fillable プロパティを取得
      *
-     * @return array
      * @test
+     * @return array
+     * @throws UnsupportedOperandTypesException
      */
     private function getFillableProperty(): array
     {
@@ -829,8 +837,9 @@ trait FormRequestAccessor
     /**
      * $guarded プロパティを取得
      *
-     * @return array
      * @test
+     * @return array
+     * @throws UnsupportedOperandTypesException
      */
     private function getGuardedProperty(): array
     {
@@ -848,8 +857,9 @@ trait FormRequestAccessor
     /**
      * $enabled プロパティを取得
      *
-     * @return array
      * @test
+     * @return array
+     * @throws UnsupportedOperandTypesException
      */
     private function getEnabledProperty(): array
     {
@@ -866,8 +876,9 @@ trait FormRequestAccessor
     /**
      * $disabled プロパティを取得
      *
-     * @return array
      * @test
+     * @return array
+     * @throws UnsupportedOperandTypesException
      */
     private function getDisabledProperty(): array
     {
@@ -885,8 +896,9 @@ trait FormRequestAccessor
     /**
      * $casts プロパティを取得
      *
-     * @return array
      * @test
+     * @return array
+     * @throws UnsupportedOperandTypesException
      */
     public function getCastsProperty()
     {

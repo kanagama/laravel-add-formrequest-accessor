@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
 
 /**
+ * @property-read null $accessor_null
  * @property-read int $accessor_int
  * @property-read string $accessor_string_empty
  *

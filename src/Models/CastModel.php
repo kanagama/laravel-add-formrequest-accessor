@@ -2,8 +2,8 @@
 
 namespace Kanagama\FormRequestAccessor\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model の casts を利用するためのクラス
@@ -14,6 +14,9 @@ class CastModel extends Model
 {
     use HasFactory;
 
+    /**
+     * @var array
+     */
     protected $casts = [];
 
     /**
@@ -37,7 +40,8 @@ class CastModel extends Model
     }
 
     /**
-     * @param  $key
+     * @param  mixed  $key
+     * @return mixed
      */
     public function getCastType($key)
     {

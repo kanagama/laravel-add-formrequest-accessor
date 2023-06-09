@@ -5,6 +5,7 @@ namespace Kanagama\FormRequestAccessor\Tests\Feature;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
+use Kanagama\FormRequestAccessor\Tests\TestCase;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestCastsRequest;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestDisabledRequest;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestEmptyDisabledRequest;
@@ -14,7 +15,6 @@ use Kanagama\FormRequestAccessor\Tests\TestRequest\TestGuardedRequest;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestImmutableRequest;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestNullDisabledRequest;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestRequest;
-use Kanagama\FormRequestAccessor\Tests\TestCase;
 
 /**
  * @author k-nagama <k.nagama0632@gmail.com>
@@ -25,34 +25,42 @@ class LaravelFormRequestAccessorFeatureTest extends TestCase
      * @var TestRequest
      */
     private TestRequest $testRequest;
+
     /**
      * @var TestCastsRequest
      */
     private TestCastsRequest $testCastRequest;
+
     /**
      * @var TestDisabledRequest
      */
     private TestDisabledRequest $testDisabledRequest;
+
     /**
      * @var TestEmptyDisabledRequest
      */
     private TestEmptyDisabledRequest $testEmptyDisabledRequest;
+
     /**
      * @var TestEnabledRequest
      */
     private TestEnabledRequest $testEnabledRequest;
+
     /**
      * @var TestFillableRequest
      */
     private TestFillableRequest $testFillableRequest;
+
     /**
      * @var TestGuardedRequest
      */
     private TestGuardedRequest $testGuardedRequest;
+
     /**
      * @var TestImmutableRequest
      */
     private TestImmutableRequest $testImmutableRequest;
+
     /**
      * @var TestNullDisabledRequest
      */
@@ -218,7 +226,6 @@ class LaravelFormRequestAccessorFeatureTest extends TestCase
         $this->assertEquals($this->testCastRequest->input('not_accessor_test', []), []);
         $this->assertEquals($this->testCastRequest->input('not_accessor_test', ''), '');
     }
-
 
     /**
      * @test
