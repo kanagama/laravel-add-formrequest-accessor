@@ -6,6 +6,8 @@ use Exception;
 
 /**
  * immutable な Request で merge() を呼び出した
+ *
+ * @author k-nagama <k.nagama0632@gmail.com>
  */
 class ImmutableException extends Exception
 {

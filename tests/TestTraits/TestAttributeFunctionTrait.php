@@ -2,6 +2,9 @@
 
 namespace Kanagama\FormRequestAccessor\Tests\TestTraits;
 
+/**
+ * @author k-nagama <k.nagama0632@gmail.com>
+ */
 trait TestAttributeFunctionTrait
 {
     /**

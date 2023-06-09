@@ -5,6 +5,9 @@ namespace Kanagama\FormRequestAccessor\Tests\TestTraits;
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
 use ReflectionClass;
 
+/**
+ * @author k-nagama <k.nagama0632@gmail.com>
+ */
 trait RefrectionClassTrait
 {
     /**
