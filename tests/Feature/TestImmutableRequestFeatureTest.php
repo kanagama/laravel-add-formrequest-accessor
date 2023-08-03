@@ -23,11 +23,13 @@ class TestImmutableRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // immutable
-        $this->testImmutableRequest = new TestImmutableRequest([
-            'test_immutable' => 1,
-        ]);
-        $this->testImmutableRequest->passedValidation();
+        $this->app->resolving(TestImmutableRequest::class, function ($resolved) {
+            $resolved->merge([
+                'test_immutable' => 1,
+            ]);
+        });
+        /** @var TestImmutableRequest */
+        $this->testImmutableRequest = app(TestImmutableRequest::class);
     }
 
     /**

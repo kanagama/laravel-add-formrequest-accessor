@@ -22,11 +22,14 @@ class TestFillableRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->testFillableRequest = new TestFillableRequest([
-            'test_fillable' => 1,
-            'test_guarded'  => 1,
-        ]);
-        $this->testFillableRequest->passedValidation();
+        $this->app->resolving(TestFillableRequest::class, function ($resolved) {
+            $resolved->merge([
+                'test_fillable' => 1,
+                'test_guarded'  => 1,
+            ]);
+        });
+        /** @var TestFillableRequest */
+        $this->testFillableRequest = app(TestFillableRequest::class);
     }
 
     /**
@@ -77,13 +80,20 @@ class TestFillableRequestFeatureTest extends TestCase
      * @test
      * @group fillable
      */
-    public function fillableプロパティに指定されているプロパティにはアクセスできる()
+    public function fillableプロパティに指定されているプロパティはallで出力される()
     {
         $all = $this->testFillableRequest->all();
 
         $this->assertTrue(isset($all['accessor_fillable']));
         $this->assertTrue(isset($all['test_fillable']));
+    }
 
+    /**
+     * @test
+     * @group fillable
+     */
+    public function fillableプロパティに指定されているプロパティは直接アクセスできる()
+    {
         $this->assertEquals($this->testFillableRequest->accessor_fillable, 1);
         $this->assertEquals($this->testFillableRequest->test_fillable, 1);
     }

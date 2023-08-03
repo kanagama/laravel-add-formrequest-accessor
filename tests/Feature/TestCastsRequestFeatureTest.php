@@ -23,14 +23,16 @@ class TestCastsRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // $casts
-        $this->testCastRequest = new TestCastsRequest([
-            'int'    => '1',
-            'string' => 1,
-            'bool'   => 1,
-            'carbon' => date('Y-m-d'),
-        ]);
-        $this->testCastRequest->passedValidation();
+        $this->app->resolving(TestCastsRequest::class, function ($resolved) {
+            $resolved->merge([
+                'int'    => '1',
+                'string' => 1,
+                'bool'   => 1,
+                'carbon' => date('Y-m-d'),
+            ]);
+        });
+        /** @var TestCastsRequest */
+        $this->testCastRequest = app(TestCastsRequest::class);
     }
 
     /**

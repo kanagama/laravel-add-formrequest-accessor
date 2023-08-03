@@ -21,7 +21,8 @@
         "phpunit/phpunit": "^9.0 | ^10.0",
         "orchestra/testbench": "*",
         "phpstan/phpstan": "^1.10",
-        "phpmetrics/phpmetrics": "^2.8"
+        "phpmetrics/phpmetrics": "^2.8",
+        "php-coveralls/php-coveralls": "^2.5"
     },
     "autoload": {
         "psr-4": {

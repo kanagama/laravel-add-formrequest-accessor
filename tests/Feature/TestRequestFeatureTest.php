@@ -3,6 +3,7 @@
 namespace Kanagama\FormRequestAccessor\Tests\Feature;
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ValidatedInput;
 use Kanagama\FormRequestAccessor\Tests\TestCase;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestRequest;
 
@@ -23,11 +24,14 @@ class TestRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->testRequest = new TestRequest([
-            'test_offset_unset' => 1,
-            'test_offset_set'   => 2,
-        ]);
-        $this->testRequest->passedValidation();
+        $this->app->resolving(TestRequest::class, function ($resolved) {
+            $resolved->merge([
+                'test_offset_unset' => 1,
+                'test_offset_set'   => 2,
+            ]);
+        });
+        /** @var TestRequest */
+        $this->testRequest = app(TestRequest::class);
 
         Route::shouldReceive('currentRouteAction')
             ->andReturn('App\Controller\TestController@index');
@@ -106,5 +110,68 @@ class TestRequestFeatureTest extends TestCase
     public function getActionで正常にアクション名が取得できる()
     {
         $this->assertNotEmpty($this->testRequest->getAction());
+    }
+
+    /**
+     * @test
+     */
+    public function validatedが動作する()
+    {
+        $this->assertIsArray($this->testRequest->validated());
+    }
+
+    /**
+     * @test
+     * @group validated
+     */
+    public function validatedは入力パラメータのみ()
+    {
+        $this->assertSame(
+            $this->testRequest->validated(),
+            [
+                'test_offset_unset' => 1,
+            ]
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function safeが動作する()
+    {
+        $this->assertInstanceOf(
+            ValidatedInput::class,
+            $this->testRequest->safe()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function queryが動作する()
+    {
+        $this->assertIsArray(
+            $this->testRequest->query()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function onlyが動作する()
+    {
+        $this->assertIsArray(
+            $this->testRequest->only('test_offset_unset')
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function exceptが動作する()
+    {
+        $this->assertIsArray(
+            $this->testRequest->except('test_offset_unset')
+        );
     }
 }

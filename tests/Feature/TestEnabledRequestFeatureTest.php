@@ -22,25 +22,34 @@ class TestEnabledRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // enabled
-        $this->testEnabledRequest = new TestEnabledRequest([
-            'test_enabled'  => 1,
-            'test_disabled' => 1,
-        ]);
-        $this->testEnabledRequest->passedValidation();
+        $this->app->resolving(TestEnabledRequest::class, function ($resolved) {
+            $resolved->merge([
+                'test_enabled'  => 1,
+                'test_disabled' => 1,
+            ]);
+        });
+        /** @var TestEnabledRequest */
+        $this->testEnabledRequest = app(TestEnabledRequest::class);
     }
 
     /**
      * @test
      * group enabled
      */
-    public function enabledプロパティに指定されているプロパティにはアクセスできる()
+    public function enabledプロパティに指定されているプロパティはallで出力される()
     {
         $all = $this->testEnabledRequest->all();
 
         $this->assertTrue(isset($all['accessor_enabled']));
         $this->assertTrue(isset($all['test_enabled']));
+    }
 
+    /**
+     * @test
+     * @group enabled
+     */
+    public function enabledプロパティに指定されているプロパティにアクセスできる()
+    {
         $this->assertEquals($this->testEnabledRequest->accessor_enabled, 1);
         $this->assertEquals($this->testEnabledRequest->test_enabled, 1);
     }
@@ -49,13 +58,20 @@ class TestEnabledRequestFeatureTest extends TestCase
      * @test
      * @group enabled
      */
-    public function enabledプロパティで指定されていないプロパティにはアクセスできない()
+    public function enabledプロパティで指定されていないプロパティはallで出力されない()
     {
         $all = $this->testEnabledRequest->all();
 
         $this->assertFalse(isset($all['accessor_disabled']));
         $this->assertFalse(isset($all['test_disabled']));
+    }
 
+    /**
+     * @test
+     * @group enabled
+     */
+    public function enabledプロパティで指定されていないプロパティに直接アクセスできない()
+    {
         $this->assertFalse(property_exists($this->testEnabledRequest, 'accessor_disabled'));
         $this->assertFalse(property_exists($this->testEnabledRequest, 'test_disabled'));
     }

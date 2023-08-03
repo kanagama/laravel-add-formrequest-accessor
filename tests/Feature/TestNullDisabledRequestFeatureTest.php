@@ -22,14 +22,16 @@ class TestNullDisabledRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // null_disabled
-        $this->testNullDisabledRequest = new TestNullDisabledRequest([
-            'null'         => null,
-            'int'          => 1,
-            'int_zero'     => 0,
-            'string_empty' => '',
-        ]);
-        $this->testNullDisabledRequest->passedValidation();
+        $this->app->resolving(TestNullDisabledRequest::class, function ($resolved) {
+            $resolved->merge([
+                'null'         => null,
+                'int'          => 1,
+                'int_zero'     => 0,
+                'string_empty' => '',
+            ]);
+        });
+        /** @var TestNullDisabledRequest */
+        $this->testNullDisabledRequest = app(TestNullDisabledRequest::class);
     }
 
     /**
@@ -42,13 +44,21 @@ class TestNullDisabledRequestFeatureTest extends TestCase
 
         $this->assertFalse(isset($all['accessor_null']));
         $this->assertFalse(isset($all['null']));
+    }
+
+    /**
+     * @test
+     * @group nullDisabled
+     */
+    public function nullDisabledがtruの場合、nullのプロパティにアクセスできない()
+    {
         $this->assertFalse(property_exists($this->testNullDisabledRequest, 'accessor_null'));
         $this->assertFalse(property_exists($this->testNullDisabledRequest, 'null'));
     }
 
     /**
      * @test
-     * @group null_disabled
+     * @group nullDisabled
      */
     public function null_disabledがtrueの場合、nullでなければアクセスできる()
     {

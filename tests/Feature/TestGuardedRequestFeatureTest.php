@@ -22,26 +22,35 @@ class TestGuardedRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // guarded
-        $this->testGuardedRequest = new TestGuardedRequest([
-            'test_guarded'  => 1,
-            'test'          => 1,
-        ]);
-        $this->testGuardedRequest->passedValidation();
+        $this->app->resolving(TestGuardedRequest::class, function ($resolved) {
+            $resolved->merge([
+                'test_guarded'  => 1,
+                'test'          => 1,
+            ]);
+        });
+        /** @var TestGuardedRequest */
+        $this->testGuardedRequest = app(TestGuardedRequest::class);
     }
 
     /**
      * @test
      * @group guarded
      */
-    public function guardedプロパティに指定されていないプロパティにはアクセスできる()
+    public function guardedプロパティに指定されていないプロパティはallで出力される()
     {
         $all = $this->testGuardedRequest->all();
 
         $this->assertTrue(isset($all['test']));
         $this->assertTrue(isset($all['accessor_int']));
         $this->assertTrue(isset($all['accessor_string']));
+    }
 
+    /**
+     * @test
+     * @group guarded
+     */
+    public function guardedプロパティに指定されていないプロパティは直接アクセスできる()
+    {
         $this->assertEquals($this->testGuardedRequest->test_guarded, 1);
         $this->assertEquals($this->testGuardedRequest->test, 1);
         $this->assertEquals($this->testGuardedRequest->accessor_guarded, 'a');

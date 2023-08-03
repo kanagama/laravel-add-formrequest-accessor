@@ -11,4 +11,17 @@ use Kanagama\FormRequestAccessor\FormRequestAccessor;
 class TestRequest extends FormRequest
 {
     use FormRequestAccessor;
+
+    /**
+     * @return array
+     */
+    public function rules(): array
+    {
+        return [
+            'test_offset_unset' => [
+                'required',
+                'integer',
+            ],
+        ];
+    }
 }

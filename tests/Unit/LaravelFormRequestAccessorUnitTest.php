@@ -14,53 +14,6 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     use RefrectionClassTrait;
 
     /**
-     * @return array
-     */
-    public function camelCaseProvider(): array
-    {
-        return [
-            [
-                'request'  => 'test',
-                'response' => 'getTestAttribute',
-            ],
-            [
-                'request'  => 'test_case',
-                'response' => 'getTestCaseAttribute',
-            ],
-            [
-                'request'  => 'test_case_last',
-                'response' => 'getTestCaseLastAttribute',
-            ],
-        ];
-    }
-
-    /**
-     * @test
-     * @dataProvider camelCaseProvider
-     */
-    public function スネークケースファンクション名をキャメルケースに変換(...$params)
-    {
-        $request = $params[0];
-        $camel_case = $params[1];
-
-        $response = $this->refrectionClass('camelMethod', [
-            $request,
-        ]);
-        $this->assertTrue($response === $camel_case);
-    }
-
-    /**
-     * @test
-     */
-    public function アクセサが同じアクセサから呼び出されている()
-    {
-        $response = $this->refrectionClass('checkThisFunctionCall', [
-            'test',
-        ]);
-        $this->assertFalse($response);
-    }
-
-    /**
      * @test
      */
     public function attributeファンクションが存在していればTrue()
@@ -72,7 +25,7 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     /**
      * @test
      */
-    public function validated_accessorプロパティが存在していればbool型が取得できる()
+    public function validatedAccessorプロパティが存在していればbool型が取得できる()
     {
         $response = $this->refrectionClass('getValidatedAccessorProperty', []);
         $this->assertIsBool($response);
@@ -82,7 +35,7 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     /**
      * @test
      */
-    public function validated_accessorプロパティが存在していなくてもbool型が取得できる()
+    public function validatedAccessorプロパティが存在していなくてもbool型が取得できる()
     {
         $response = $this->refrectionClassNoProperty('getValidatedAccessorProperty', []);
         $this->assertIsBool($response);
@@ -92,7 +45,7 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     /**
      * @test
      */
-    public function validated_accessorプロパティの型が異なれば例外()
+    public function validatedAccessorプロパティの型が異なれば例外()
     {
         $this->expectException(UnsupportedOperandTypesException::class);
         $this->refrectionClassExceptionProperty('getValidatedAccessorProperty', []);
@@ -101,7 +54,7 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     /**
      * @test
      */
-    public function empty_disabledプロパティが存在していればbool型が取得できる()
+    public function emptyDisabledプロパティが存在していればbool型が取得できる()
     {
         $response = $this->refrectionClass('getEmptyDisabledProperty', []);
         $this->assertIsBool($response);
@@ -111,7 +64,7 @@ class LaravelFormRequestAccessorUnitTest extends TestCase
     /**
      * @test
      */
-    public function empty_disabledプロパティが存在していなくてもbool型が取得できる()
+    public function emptyDisabledプロパティが存在していなくてもbool型が取得できる()
     {
         $response = $this->refrectionClassNoProperty('getEmptyDisabledProperty', []);
         $this->assertIsBool($response);
