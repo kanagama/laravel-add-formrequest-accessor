@@ -8,47 +8,53 @@ use Illuminate\Support\Str;
 use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
 use Kanagama\FormRequestAccessor\Exceptions\UnsupportedOperandTypesException;
 use Kanagama\FormRequestAccessor\Models\CastModel;
-
 /**
- * FormRequest に accessor 機能を付与
+ * @property bool|null $immutable
+ * @property array|null $casts;
+ * @property array|null $guarded
+ * @property array|null $disabled
+ * @property bool|null $null_disabled
+ * @property bool|null $nullDisabled
+ * @property array|null $fillable
+ * @property array|null $fill
+ * @property bool|null $validated_accessor
+ * @property bool|null $validatedAccessor
  *
- * @method void passedValidation()
- * @method array all(mixed $keys)
- * @method mixed input(mixed $key = null, mixed $default = null)
- * @method mixed __get(mixed $key)
- * @method void validateResolved()
- * @method string getController()
- * @method string getAction()
- * @method array validated(mixed $key = null, mixed $default = null)
+ * FormRequest に accessor 機能を付与
  *
  * @author k.nagama <k.nagama0632@gmail.com>
  */
 trait FormRequestAccessor
 {
     /**
-     * 変更前の Request クラス
-     *
-     * @static
      * @var FormRequest
      */
-    private static $beforeRequest;
+    private FormRequest $beforeRequest;
 
     /**
-     * @static
      * @var bool
      */
-    private static $process = true;
+    private bool $accessorProcess = false;
 
     /**
-     * @static
-     */
-    private static $requestProperties;
-
-    /**
-     * @static
      * @var array
      */
-    private static array $accessors = [];
+    private array $requestProperties;
+
+    /**
+     * @var array
+     */
+    private array $accessors = [];
+
+    /**
+     * @var array
+     */
+    private array $alls = [];
+
+    /**
+     * @var array
+     */
+    private array $validatedProperties;
 
     /**
      * アクセサ追加前の all() を取得
@@ -77,53 +83,17 @@ trait FormRequestAccessor
                 'fillable'       => $this->getFillableProperty(),
                 'guarded'        => $this->getGuardedProperty(),
                 'casts'          => $this->getCastsProperty(),
-                'null_disabled'  => $this->getNullDisabledProperty(),
-                'empty_disabled' => $this->getEmptyDisabledProperty(),
+                'nullDisabled'  => $this->getNullDisabledProperty(),
+                'emptyDisabled' => $this->getEmptyDisabledProperty(),
                 'validated'      => $this->getValidatedAccessorProperty(),
             ],
             'all' => [
-                'before_all' => $this->beforeAll(),
-                'after_all'  => $this->all(),
+                'beforeAll' => $this->beforeAll(),
+                'afterAll'  => $this->all(),
             ],
-            'accessor_methods' => $this->getThisClassAccessorMethods(),
+            'accessorMethods' => $this->getThisClassAccessorMethods(),
         ]);
     }
-
-    // 内部で all() が呼び出されており、アクセサは正常にセットされるため不要
-    // public function only($keys)
-    // {
-    //     return parent::only($keys);
-    // }
-    // public function except($keys)
-    // {
-    //     return parent::except($keys);
-    // }
-    // public function has($key)
-    // {
-    //     return parent::has($key);
-    // }
-    // public function hasAny($keys)
-    // {
-    //     return parent::hasAny($keys);
-    // }
-    // public function missing($key)
-    // {
-    //     return parent::missing($key);
-    // }
-
-    // 内部で input() が呼び出されており、アクセサは正常にセットされるため不要
-    // public function boolean($key = null, $default = false)
-    // {
-    //     return parent::boolean($key, $default);
-    // }
-    // public function filled($key)
-    // {
-    //     return parent::filled($key);
-    // }
-    // public function isNotFilled($key)
-    // {
-    //     return parent::isNotFilled($key);
-    // }
 
     /**
      * laravel\framework\src\Illuminate\Http\Concerns\InteractsWithInput.php
@@ -133,50 +103,15 @@ trait FormRequestAccessor
      */
     public function all($keys = null): array
     {
-        $all = parent::all($keys);
-        // $enabled もしくは $disabled が指定されている場合はそのまま返却
-        if (self::$process || $this->getEnabledProperty() || $this->getDisabledProperty()) {
-            return $all;
+        if (!$this->getProcess()) {
+            return parent::all($keys);
         }
 
-        if ($this->getNullDisabledProperty()) {
-            foreach ($all as $key => $value) {
-                if (is_null($value)) {
-                    unset($all[$key]);
-                }
-            }
-        }
-
-        if ($this->getEmptyDisabledProperty()) {
-            foreach ($all as $key => $value) {
-                if (empty($value)) {
-                    unset($all[$key]);
-                }
-            }
-        }
-
-        if ($this->getFillableProperty()) {
-            foreach ($all as $key => $value) {
-                if (!in_array($key, $this->getFillableProperty(), true)) {
-                    unset($all[$key]);
-                }
-            }
-
-            return $all;
-        }
-
-        foreach ($this->getGuardedProperty() as $key) {
-            if (in_array($key, $this->getGuardedProperty(), true)) {
-                unset($all[$key]);
-            }
-        }
-
-        return $all;
+        return $this->alls;
     }
 
     /**
      * get() のオーバーライド
-     * 定義前のアクセサメソッドが呼び出された場合
      *
      * @param  string  $key
      * @param  mixed|null  $default
@@ -184,12 +119,15 @@ trait FormRequestAccessor
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->getData($key, $default, parent::get($key));
+        if (isset($this->accessors[$key])) {
+            return parent::get($key, $this->accessors[$key] ?? $default);
+        }
+
+        return parent::get($key, $default);
     }
 
     /**
      * input のオーバーライド
-     * 定義前のアクセサメソッドが呼び出された場合
      *
      * @param  string|null  $key
      * @param  mixed|null  $default
@@ -197,7 +135,11 @@ trait FormRequestAccessor
      */
     public function input($key = null, $default = null)
     {
-        return $this->getData($key, $default, parent::input($key));
+        if (isset($this->accessors[$key])) {
+            return parent::input($key, $this->accessors[$key] ?? $default);
+        }
+
+        return parent::input($key, $default);
     }
 
     /**
@@ -211,7 +153,13 @@ trait FormRequestAccessor
 
         parent::passedValidation();
 
+        $this->setValidated();
+
+        $this->addAll();
+
         $this->addAccessorMethods();
+
+        $this->delAll();
 
         $this->callModelCast();
 
@@ -220,17 +168,34 @@ trait FormRequestAccessor
         $this->endRequest();
     }
 
+    private function setValidated()
+    {
+        $this->validatedProperties = parent::validated();
+    }
+
     /**
      * @return array
      */
     public function validated($key = null, $default = null)
     {
-        $validated = parent::validated($key, $default);
-        if (!$this->getValidatedAccessorProperty()) {
-            return $validated;
+        if (!$this->getProcess()) {
+            return parent::validated($key, $default);
         }
 
-        return array_merge($validated, self::$accessors);
+        if (!$this->getValidatedAccessorProperty()) {
+            if (empty($key)) {
+                return $this->validatedProperties;
+            }
+            return $this->validatedProperties[$key] ?? $default;
+        }
+
+        $validatedProperties = array_merge($this->validatedProperties, $this->accessors);
+
+        if (empty($key)) {
+            return $validatedProperties;
+        }
+
+        return $validatedProperties[$key] ?? $default;
     }
 
     /**
@@ -252,24 +217,31 @@ trait FormRequestAccessor
      */
     public function before()
     {
-        if (is_null(self::$beforeRequest)) {
+        if (is_null($this->beforeRequest)) {
             return new $this;
         }
 
-        return self::$beforeRequest;
+        return $this->beforeRequest;
     }
 
     /**
      * immutable が設定されている場合、 merge() を利用不可
      *
      * @param  array  $input
-     * @return self
-     * @throws ImmutableException
+     * @return $this
      */
     public function merge($input): self
     {
-        if ($this->isImmutable()) {
+        if (!$this->getProcess()) {
             return parent::merge($input);
+        }
+
+        if (!$this->isImmutable()) {
+            $this->accessors = array_merge(
+                $this->accessors,
+                $input
+            );
+            return $this;
         }
 
         throw new ImmutableException();
@@ -279,13 +251,17 @@ trait FormRequestAccessor
      * immutable が設定されている場合、 replace() を利用不可
      *
      * @param  array  $input
-     * @return self
-     * @throws ImmutableException
+     * @return $this
      */
     public function replace(array $input): self
     {
-        if ($this->isImmutable()) {
+        if (!$this->getProcess()) {
             return parent::replace($input);
+        }
+
+        if (!$this->isImmutable()) {
+            $this->accessors = $input;
+            return $this;
         }
 
         throw new ImmutableException();
@@ -295,15 +271,23 @@ trait FormRequestAccessor
      * immutable が設定されている場合、 offsetUnset() を利用不可
      *
      * @param  string  $offset
+     * @return void
      * @throws ImmutableException
      */
     public function offsetUnset($offset): void
     {
-        if (!$this->isImmutable()) {
+        if (!$this->getProcess()) {
+            parent::offsetUnset($offset);
+            return;
+        }
+
+        if ($this->isImmutable()) {
             throw new ImmutableException();
         }
 
-        parent::offsetUnset($offset);
+        if (isset($this->accessors[$offset])) {
+            unset($this->accessors[$offset]);
+        }
     }
 
     /**
@@ -311,15 +295,21 @@ trait FormRequestAccessor
      *
      * @param  string  $offset
      * @param  mixed  $value
+     * @return void
      * @throws ImmutableException
      */
     public function offsetSet($offset, $value): void
     {
-        if (!$this->isImmutable()) {
+        if (!$this->getProcess()) {
+            parent::offsetSet($offset, $value);
+            return;
+        }
+
+        if ($this->isImmutable()) {
             throw new ImmutableException();
         }
 
-        parent::offsetSet($offset, $value);
+        $this->accessors[$offset] = $value;
     }
 
     /**
@@ -330,28 +320,36 @@ trait FormRequestAccessor
      */
     public function __get($key)
     {
-        $response = parent::__get($key);
-
-        if (
-            !is_null($response)
-            ||
-            (self::$process || ($this->getDisabledProperty() || $this->getEnabledProperty()))
-            ||
-            // fill または guarded が存在しなければ終了
-            (!$this->getFillableProperty() && !$this->getGuardedProperty())
-        ) {
-            return $response;
+        if (!$this->getProcess()) {
+            return parent::__get($key);
         }
 
-        if (in_array($this->camelMethod($key), $this->getThisClassAccessorMethods(), true)) {
-            return $this->{$this->camelMethod($key)}();
-        }
-
-        if ($this->query($key, false) !== false) {
-            return $this->query($key);
+        if (isset($this->accessors[$key])) {
+            return $this->accessors[$key];
         }
 
         return null;
+    }
+
+    /**
+     * 未定義プロパティへの格納
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @throws ImmutableException
+     */
+    public function __set($key, $value)
+    {
+        if (in_array($key, $this->getPropertyNames(), true)) {
+            $this->{$key} = $value;
+            return;
+        }
+
+        if ($this->immutable) {
+            throw new ImmutableException();
+        }
+
+        $this->accessors[$key] = $value;
     }
 
     /**
@@ -371,39 +369,6 @@ trait FormRequestAccessor
     }
 
     /**
-     * get(), input() からデータを取得する
-     *
-     * @param  mixed  $key
-     * @param  mixed  $default
-     * @param  mixed  $inputValue
-     * @return mixed
-     */
-    private function getData($key, $default, $inputValue)
-    {
-        if (
-            self::$process
-            &&
-            is_null($inputValue) && !is_null($key) && is_null($default)
-            &&
-            // アクセサから同じアクセサが呼び出されるとループして例外が発生するため
-            !$this->checkThisFunctionCall($key)
-        ) {
-            // 対象アクセサメソッドが存在していれば呼び出す
-            $method = $this->camelMethod($key);
-            if (in_array($method, $this->getThisClassAccessorMethods(), true) !== false) {
-                return $this->{$method}();
-            }
-        }
-
-        // デフォルト値が設定されていればそちらを返却する
-        if (is_null($inputValue) && !is_null($default)) {
-            return $default;
-        }
-
-        return $inputValue;
-    }
-
-    /**
      * 設定可能なプロパティ名を取得する
      *
      * @return array
@@ -417,7 +382,11 @@ trait FormRequestAccessor
             'fillable',
             'casts',
             'null_disabled',
+            'nullDisabled',
             'empty_disabled',
+            'emptyDisabled',
+            'validated_accessor',
+            'validatedAccessor',
             'disabled',
             'enabled',
         ];
@@ -428,7 +397,7 @@ trait FormRequestAccessor
      */
     private function startRequest()
     {
-        self::$beforeRequest = clone $this;
+        $this->beforeRequest = clone $this;
     }
 
     /**
@@ -437,33 +406,7 @@ trait FormRequestAccessor
     private function endRequest()
     {
         // __get() で アクセサを動作させない
-        self::$process = false;
-
-        $properties = array_merge(get_object_vars($this), $this->all());
-        // $enabled で指定されていない、または $disabled で指定されているプロパティは削除
-        foreach ($properties as $key => $value) {
-            // リクエストクラスのプロパティの場合、何もしない
-            if ($this->checkRequestPropertyName($key)) {
-                continue;
-            }
-
-            if ($this->getEnabledProperty()) {
-                if (!in_array($key, $this->getEnabledProperty(), true)) {
-                    $this->offsetUnset($key);
-                }
-                continue;
-            }
-            if ($this->getDisabledProperty()) {
-                if (in_array($key, $this->getDisabledProperty(), true)) {
-                    $this->offsetUnset($key);
-                }
-                continue;
-            }
-
-            if ($this->checkDeleteNullProperty($key) || $this->checkDeleteEmptyProperty($key)) {
-                $this->offsetUnset($key);
-            }
-        }
+        $this->accessorProcess = true;
     }
 
     /**
@@ -503,6 +446,45 @@ trait FormRequestAccessor
     }
 
     /**
+     *
+     */
+    private function addAll()
+    {
+        $this->accessors = $this->all();
+        if ($this->getNullDisabledProperty()) {
+            foreach ($this->accessors as $key => $value) {
+                if (is_null($value)) {
+                    unset($this->accessors[$key]);
+                }
+            }
+        }
+
+        if ($this->getEmptyDisabledProperty()) {
+            foreach ($this->accessors as $key => $value) {
+                if (empty($value)) {
+                    unset($this->accessors[$key]);
+                }
+            }
+        }
+
+        if ($this->getEnabledProperty()) {
+            foreach ($this->accessors as $key => $value) {
+                if (!in_array($key, $this->getEnabledProperty(), true)) {
+                    unset($this->accessors[$key]);
+                }
+            }
+        }
+
+        if (!$this->getEnabledProperty() && $this->getDisabledProperty()) {
+            foreach ($this->getDisabledProperty() as $value) {
+                if (isset($this->accessors[$value])) {
+                    unset($this->accessors[$value]);
+                }
+            }
+        }
+    }
+
+    /**
      * アクセサメソッドを追加
      */
     private function addAccessorMethods()
@@ -521,18 +503,36 @@ trait FormRequestAccessor
                 continue;
             }
 
-            $this->merge([
-                $match[0] => $returnValue,
-            ]);
+            $this->accessors[$match[0]] = $returnValue;
+        }
 
-            self::$accessors[$match[0]] = $returnValue;
+        $this->alls = $this->accessors;
+    }
+
+    /**
+     * all の結果を削る
+     */
+    private function delAll()
+    {
+        if ($this->getFillableProperty()) {
+            foreach ($this->alls as $key => $value) {
+                if (!in_array($key, $this->getFillableProperty(), true)) {
+                    unset($this->alls[$key]);
+                }
+            }
+        }
+        if (!$this->getFillableProperty() && $this->getGuardedProperty()) {
+            foreach ($this->getGuardedProperty() as $value) {
+                if (!isset($this->accessors[$value])) {
+                    unset($this->alls[$key]);
+                }
+            }
         }
     }
 
     /**
      * コントローラー名を取得
      *
-     * @test
      * @return string
      */
     public function getController(): string
@@ -551,7 +551,6 @@ trait FormRequestAccessor
     /**
      * アクション名を取得
      *
-     * @test
      * @return string
      */
     public function getAction(): string
@@ -566,6 +565,8 @@ trait FormRequestAccessor
 
     /**
      * model クラスの cast 処理を呼び出す
+     *
+     * @return void
      */
     private function callModelCast()
     {
@@ -580,9 +581,7 @@ trait FormRequestAccessor
                 continue;
             }
 
-            $this->merge([
-                $key => $model->castAttribute($value, $this->{$key}),
-            ]);
+            $this->accessors[$key] = $model->castAttribute($value, $this->accessors[$key]);
         }
     }
 
@@ -632,20 +631,20 @@ trait FormRequestAccessor
      */
     private function getRequestProperties(): array
     {
-        if (!empty(self::$requestProperties)) {
-            return self::$requestProperties;
+        if (!empty($this->requestProperties)) {
+            return $this->requestProperties;
         }
 
         $request = new FormRequest();
         $request->passedValidation();
 
-        return self::$requestProperties = array_keys(get_object_vars($request));
+        return $this->requestProperties = array_keys(get_object_vars($request));
     }
 
     /**
      * 固定プロパティ名であれば true
      *
-     * @param  string  $key
+     * @param  string $key
      * @return bool
      */
     private function checkRequestPropertyName(string $key): bool
@@ -680,7 +679,7 @@ trait FormRequestAccessor
     /**
      * empty の プロパティを削除するかどうか
      *
-     * @param  string  $key
+     * @param  string $key
      * @return bool
      */
     private function checkDeleteEmptyProperty(string $key): bool
@@ -704,7 +703,11 @@ trait FormRequestAccessor
      */
     private function isImmutable(): bool
     {
-        return (self::$process || !$this->getImmutableProperty());
+        return (
+            $this->getProcess()
+            &&
+            $this->getImmutableProperty()
+        );
     }
 
     /**
@@ -714,7 +717,11 @@ trait FormRequestAccessor
      */
     private function isNullDisabled(): bool
     {
-        return (self::$process || !$this->getNullDisabledProperty());
+        return (
+            $this->getProcess()
+            ||
+            !$this->getNullDisabledProperty()
+        );
     }
 
     /**
@@ -724,7 +731,19 @@ trait FormRequestAccessor
      */
     private function isEmptyDisabled(): bool
     {
-        return (self::$process || !$this->getEmptyDisabledProperty());
+        return (
+            $this->getProcess()
+            ||
+            !$this->getEmptyDisabledProperty()
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    private function getProcess(): bool
+    {
+        return $this->accessorProcess;
     }
 
     /**
@@ -748,26 +767,34 @@ trait FormRequestAccessor
     }
 
     /**
-     * $validated プロパティを取得
+     * $validatedAccessor プロパティを取得
      *
      * @return bool
      * @throws UnsupportedOperandTypesException
      */
     private function getValidatedAccessorProperty(): bool
     {
-        if (!property_exists(get_class(), 'validated_accessor')) {
+        if (
+            !property_exists(get_class(), 'validated_accessor')
+            &&
+            !property_exists(get_class(), 'validatedAccessor')
+        ) {
             return false;
         }
 
-        if (is_bool($this->validated_accessor)) {
-            return $this->validated_accessor;
+        if (property_exists(get_class(), 'validated_accessor') && is_bool($this->validated_accessor)) {
+            $this->validatedAccessor = $this->validated_accessor;
+            return $this->validatedAccessor;
+        }
+        if (property_exists(get_class(), 'validatedAccessor') && is_bool($this->validatedAccessor)) {
+            return $this->validatedAccessor;
         }
 
         throw new UnsupportedOperandTypesException();
     }
 
     /**
-     * $null_disabled プロパティを取得
+     * $nullDisabled プロパティを取得
      *
      * @test
      * @return bool
@@ -775,19 +802,27 @@ trait FormRequestAccessor
      */
     private function getNullDisabledProperty(): bool
     {
-        if (!property_exists(get_class(), 'null_disabled')) {
+        if (
+            !property_exists(get_class(), 'null_disabled')
+            &&
+            !property_exists(get_class(), 'nullDisabled')
+        ) {
             return false;
         }
 
-        if (is_bool($this->null_disabled)) {
-            return $this->null_disabled;
+        if (property_exists(get_class(), 'null_disabled') && is_bool($this->null_disabled)) {
+            $this->nullDisabled = $this->null_disabled;
+            return $this->nullDisabled;
+        }
+        if (property_exists(get_class(), 'nullDisabled') && is_bool($this->nullDisabled)) {
+            return $this->nullDisabled;
         }
 
         throw new UnsupportedOperandTypesException();
     }
 
     /**
-     * $empty_disabled プロパティを取得
+     * $emptyDisabled プロパティを取得
      *
      * @test
      * @return bool
@@ -795,12 +830,20 @@ trait FormRequestAccessor
      */
     private function getEmptyDisabledProperty(): bool
     {
-        if (!property_exists(get_class(), 'empty_disabled')) {
+        if (
+            !property_exists(get_class(), 'empty_disabled')
+            &&
+            !property_exists(get_class(), 'emptyDisabled')
+        ) {
             return false;
         }
 
-        if (is_bool($this->empty_disabled)) {
-            return $this->empty_disabled;
+        if (property_exists(get_class(), 'empty_disabled') && is_bool($this->empty_disabled)) {
+            $this->emptyDisabled = $this->empty_disabled;
+            return $this->emptyDisabled;
+        }
+        if (property_exists(get_class(), 'emptyDisabled') && is_bool($this->emptyDisabled)) {
+            return $this->emptyDisabled;
         }
 
         throw new UnsupportedOperandTypesException();
@@ -815,17 +858,14 @@ trait FormRequestAccessor
      */
     private function getFillableProperty(): array
     {
-        if (property_exists(get_class(), 'fillable')) {
-            if (is_array($this->fillable)) {
-                return $this->fillable;
-            }
-
-            throw new UnsupportedOperandTypesException();
+        if (property_exists(get_class(), 'fill') && !is_null($this->fill)) {
+            $this->fillable = $this->fill;
+            unset($this->fill);
         }
 
-        if (property_exists(get_class(), 'fill')) {
-            if (is_array($this->fill)) {
-                return $this->fill;
+        if (property_exists(get_class(), 'fillable') && !is_null($this->fillable)) {
+            if (is_array($this->fillable)) {
+                return $this->fillable;
             }
 
             throw new UnsupportedOperandTypesException();
@@ -843,7 +883,7 @@ trait FormRequestAccessor
      */
     private function getGuardedProperty(): array
     {
-        if (!property_exists(get_class(), 'guarded')) {
+        if (!property_exists(get_class(), 'guarded') || is_null($this->guarded)) {
             return [];
         }
 
@@ -863,7 +903,7 @@ trait FormRequestAccessor
      */
     private function getEnabledProperty(): array
     {
-        if (!property_exists(get_class(), 'enabled')) {
+        if (!property_exists(get_class(), 'enabled') || is_null($this->enabled)) {
             return [];
         }
 
@@ -882,7 +922,7 @@ trait FormRequestAccessor
      */
     private function getDisabledProperty(): array
     {
-        if (!property_exists(get_class(), 'disabled')) {
+        if (!property_exists(get_class(), 'disabled') || is_null($this->disabled)) {
             return [];
         }
 
@@ -900,9 +940,9 @@ trait FormRequestAccessor
      * @return array
      * @throws UnsupportedOperandTypesException
      */
-    public function getCastsProperty()
+    private function getCastsProperty()
     {
-        if (!property_exists(get_class(), 'casts')) {
+        if (!property_exists(get_class(), 'casts') || is_null($this->casts)) {
             return [];
         }
 

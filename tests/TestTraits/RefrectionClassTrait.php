@@ -27,9 +27,12 @@ trait RefrectionClassTrait
             use FormRequestAccessor, TestAttributeFunctionTrait;
 
             protected $null_disabled = true;
+            protected $nullDisabled;
             protected $empty_disabled = true;
+            protected $emptyDisabled;
             protected $immutable = true;
             protected $validated_accessor = true;
+            protected $validatedAccessor;
             protected $casts = [
                 'test_casts',
             ];
