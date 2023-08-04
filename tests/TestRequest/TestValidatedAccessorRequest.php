@@ -1,6 +1,6 @@
 <?php
 
-namespace Kanagama\FormRequestAccessor\TestRequest;
+namespace Kanagama\FormRequestAccessor\Tests\TestRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Kanagama\FormRequestAccessor\FormRequestAccessor;
@@ -20,9 +20,27 @@ class TestValidatedAccessorRequest extends FormRequest
     protected $validated_accessor = true;
 
     /**
+     * @return array
+     */
+    public function rules(): array
+    {
+        return [
+            'id' => [
+                'required',
+                'integer',
+            ],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+        ];
+    }
+
+    /**
      * @return int
      */
-    public function getIntAccessor(): int
+    public function getIntAttribute(): int
     {
         return 1;
     }
