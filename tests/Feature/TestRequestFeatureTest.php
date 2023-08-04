@@ -2,6 +2,7 @@
 
 namespace Kanagama\FormRequestAccessor\Tests\Feature;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ValidatedInput;
 use Kanagama\FormRequestAccessor\Tests\TestCase;
@@ -172,6 +173,27 @@ class TestRequestFeatureTest extends TestCase
     {
         $this->assertIsArray(
             $this->testRequest->except('test_offset_unset')
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function beforeAllが動作する()
+    {
+        $this->assertIsArray(
+            $this->testRequest->beforeAll()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function beforeが動作する()
+    {
+        $this->assertInstanceOf(
+            FormRequest::class,
+            $this->testRequest->before()
         );
     }
 }
