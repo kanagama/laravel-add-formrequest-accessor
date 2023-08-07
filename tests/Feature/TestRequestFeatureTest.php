@@ -5,6 +5,7 @@ namespace Kanagama\FormRequestAccessor\Tests\Feature;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ValidatedInput;
+use Mockery;
 use Kanagama\FormRequestAccessor\Tests\TestCase;
 use Kanagama\FormRequestAccessor\Tests\TestRequest\TestRequest;
 
@@ -196,4 +197,19 @@ class TestRequestFeatureTest extends TestCase
             $this->testRequest->before()
         );
     }
+
+    // /**
+    //  * @test
+    //  */
+    // public function routeパラメータを取得する()
+    // {
+    //     $mock = Mockery::mock(TestRequest::class);
+    //     $mock->shouldReceive('route')->andReturn('mock');
+    //     $this->app->instance(TestRequest::class, $mock);
+
+    //     $this->assertEquals(
+    //         'mock',
+    //         $this->testRequest->user_id
+    //     );
+    // }
 }
