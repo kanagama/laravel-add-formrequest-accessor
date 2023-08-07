@@ -55,6 +55,7 @@ trait FormRequestAccessor
     /**
      * アクセサ追加前の all() を取得
      *
+     * @test
      * @return array
      */
     public function beforeAll(): array
@@ -205,8 +206,6 @@ trait FormRequestAccessor
 
     /**
      * バリデーション準備
-     *
-     * @return void
      */
     public function validateResolved()
     {
@@ -218,9 +217,10 @@ trait FormRequestAccessor
     /**
      * 変更前の Request クラスを返却
      *
-     * @return mixed
+     * @test
+     * @return FormRequest
      */
-    public function before()
+    public function before(): FormRequest
     {
         if (is_null($this->beforeRequest)) {
             return new $this;
@@ -232,8 +232,10 @@ trait FormRequestAccessor
     /**
      * immutable が設定されている場合、 merge() を利用不可
      *
+     * @test
      * @param  array  $input
-     * @return $this
+     * @return self
+     * @throws ImmutableException
      */
     public function merge($input): self
     {
@@ -255,8 +257,10 @@ trait FormRequestAccessor
     /**
      * immutable が設定されている場合、 replace() を利用不可
      *
+     * @test
      * @param  array  $input
-     * @return $this
+     * @return self
+     * @throws ImmutableException
      */
     public function replace(array $input): self
     {
@@ -275,8 +279,8 @@ trait FormRequestAccessor
     /**
      * immutable が設定されている場合、 offsetUnset() を利用不可
      *
+     * @test
      * @param  string  $offset
-     * @return void
      * @throws ImmutableException
      */
     public function offsetUnset($offset): void
@@ -298,9 +302,9 @@ trait FormRequestAccessor
     /**
      * immutable が設定されている場合、 offsetSet() を利用不可
      *
+     * @test
      * @param  string  $offset
      * @param  mixed  $value
-     * @return void
      * @throws ImmutableException
      */
     public function offsetSet($offset, $value): void
@@ -434,7 +438,7 @@ trait FormRequestAccessor
     /**
      * @return array
      */
-    public function getAccessorProperty(): array
+    private function getAccessorProperty(): array
     {
         $accessors = [];
         foreach ($this->getAccessorPropertyName() as $property) {
