@@ -11,7 +11,7 @@ use Kanagama\FormRequestAccessor\Facades\Route;
 
 /**
  * @property bool|null $immutable
- * @property array|null $casts;
+ * @property array|null $casts
  * @property array|null $guarded
  * @property array|null $disabled
  * @property bool|null $null_disabled
@@ -465,6 +465,7 @@ trait FormRequestAccessor
                 continue;
             }
 
+            // アクセサメソッドを実行する
             $returnValue = $this->{AccessorName::getMethod($property)}();
             // return が null の場合は出力しない
             if ($this->getNullDisabledProperty() && is_null($returnValue)) {
@@ -475,6 +476,7 @@ trait FormRequestAccessor
                 continue;
             }
 
+            // アクセサメソッド結果を保持
             $this->accessors[$property] = $returnValue;
         }
 

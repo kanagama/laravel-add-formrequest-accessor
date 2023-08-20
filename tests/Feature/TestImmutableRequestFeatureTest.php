@@ -75,4 +75,14 @@ class TestImmutableRequestFeatureTest extends TestCase
         $this->expectException(ImmutableException::class);
         $this->testImmutableRequest->offsetSet('test_immutable', 2);
     }
+
+    /**
+     * @test
+     * @gruop immutable
+     */
+    public function immutableなRequestクラスで未定義プロパティに格納しようとすると例外()
+    {
+        $this->expectException(ImmutableException::class);
+        $this->testImmutableRequest->testPropertySet = 1;
+    }
 }
