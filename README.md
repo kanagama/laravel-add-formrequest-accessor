@@ -8,7 +8,7 @@ https://qiita.com/kazumacchi/items/aebfe8dfccbfd28acaf4
 ## インストール
 
 ```
-$ composer require kanagama/laravel-add-formrequest-accessor:1.*
+$ composer require kanagama/laravel-add-formrequest-accessor:2.*
 ```
 
 ## 使い方
