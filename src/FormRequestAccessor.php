@@ -2,7 +2,6 @@
 
 namespace Kanagama\FormRequestAccessor;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Kanagama\FormRequestAccessor\Exceptions\ImmutableException;
 use Kanagama\FormRequestAccessor\Exceptions\UnsupportedOperandTypesException;
 use Kanagama\FormRequestAccessor\Models\CastModel;
@@ -28,9 +27,9 @@ use Kanagama\FormRequestAccessor\Facades\Route;
 trait FormRequestAccessor
 {
     /**
-     * @var FormRequest
+     * @var self
      */
-    private FormRequest $beforeRequest;
+    private self $beforeRequest;
 
     /**
      * @var bool
@@ -218,9 +217,9 @@ trait FormRequestAccessor
      * 変更前の Request クラスを返却
      *
      * @test
-     * @return FormRequest
+     * @return self
      */
-    public function before(): FormRequest
+    public function before(): self
     {
         if (is_null($this->beforeRequest)) {
             return new $this;
@@ -847,11 +846,13 @@ trait FormRequestAccessor
      */
     public function __set($key, $value)
     {
+        // FormRequestAccessor のオプションの場合は入力可
         if (in_array($key, $this->getPropertyNames(), true)) {
             $this->{$key} = $value;
             return;
         }
 
+        // immutable オプションが設定されている場合は例外
         if ($this->immutable) {
             throw new ImmutableException();
         }
