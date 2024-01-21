@@ -23,7 +23,7 @@ for file in $changed_files; do
 
         # 日付が抽出できなかった場合、または日付が過去の場合にエラー
         if [[ -z $expire_date ]] || [[ $expire_date < $current_date ]]; then
-            // ファイル名と行番号を取得する
+            # ファイル名と行番号を取得する
             echo "Invalid or expired date found: $expire_date in $file:$line_number"
             exit 1
         fi
