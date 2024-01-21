@@ -1,0 +1,13 @@
+name: Check Expire Dates
+
+on:
+  workflow_call:
+
+jobs:
+  check-dates:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check for expired date
+      run: bash .github/scripts/check_expire_date.sh

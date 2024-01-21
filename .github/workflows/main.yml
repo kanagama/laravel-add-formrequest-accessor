@@ -6,14 +6,20 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
+  expire_comment:
+    uses: ./.github/workflows/expire_comment.yml
+
   phpunit:
     uses: ./.github/workflows/phpunit.yml
+    needs: [expire_comment]
+
   static_analysis:
     needs: [phpunit]
     if: >
       (needs.phpunit.result == 'success') &&
       (github.event.action == 'opened' || github.event.action == 'synchronize')
     uses: ./.github/workflows/static_analysis.yml
+
   slack_notify:
     needs: [phpunit]
     if: >
