@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   #
-  php80_add_formrequest_accessor_development:
+  php81_add_formrequest_accessor_development:
     container_name: php81_add_formrequest_accessor_development
     build:
       context: .
