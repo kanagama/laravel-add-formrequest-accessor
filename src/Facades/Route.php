@@ -38,6 +38,7 @@ class Route
      */
     public static function getAction(): string
     {
+        //
         $route = RouteFacade::currentRouteAction();
         if (empty($route) || strpos($route, '@') === false) {
             return '';
