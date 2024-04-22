@@ -11,5 +11,8 @@ use Exception;
  */
 class ImmutableException extends Exception
 {
+    /**
+     * @var string
+     */
     protected $message = 'merge() was called on an immutable request class.';
 }

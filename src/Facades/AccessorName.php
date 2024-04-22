@@ -19,7 +19,7 @@ class AccessorName
     public static function getProperty(string $method): string
     {
         preg_match('/(?<=get_).+(?=_attribute)/', Str::snake($method), $match);
-        if (empty($match[0])) {
+        if (empty($match[0]) === true) {
             return '';
         }
 
@@ -33,7 +33,7 @@ class AccessorName
      */
     public static function getMethod(string $property): string
     {
-        if (empty($property)) {
+        if (empty($property) === true) {
             return '';
         }
 

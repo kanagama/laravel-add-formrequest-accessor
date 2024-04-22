@@ -59,7 +59,7 @@ trait FormRequestAccessor
      */
     public function beforeAll(): array
     {
-        if (is_null($this->before())) {
+        if ($this->before() === null) {
             return [];
         }
 
@@ -92,6 +92,8 @@ trait FormRequestAccessor
     }
 
     /**
+     * 全てのリクエストデータを配列で取得
+     *
      * laravel\framework\src\Illuminate\Http\Concerns\InteractsWithInput.php
      *
      * @param  array|mixed  $keys
@@ -221,7 +223,7 @@ trait FormRequestAccessor
      */
     public function before(): self
     {
-        if (is_null($this->beforeRequest)) {
+        if ($this->beforeRequest === null) {
             return new $this;
         }
 

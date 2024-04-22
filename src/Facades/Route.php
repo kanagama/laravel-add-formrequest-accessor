@@ -20,7 +20,7 @@ class Route
     public static function getController(): string
     {
         $route = RouteFacade::currentRouteAction();
-        if (empty($route) || strpos($route, '@') === false) {
+        if (empty($route) === true || strpos($route, '@') === false) {
             return '';
         }
 
@@ -40,7 +40,7 @@ class Route
     {
         //
         $route = RouteFacade::currentRouteAction();
-        if (empty($route) || strpos($route, '@') === false) {
+        if (empty($route) === true || strpos($route, '@') === false) {
             return '';
         }
 
