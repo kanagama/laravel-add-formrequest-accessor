@@ -19,7 +19,7 @@ for file in $changed_files; do
 
         # 日付を抽出（[Expire] Y-m-d の形式を想定）
         # \K はそこ以前の [Expire] を省略し、Y-m-d の部分のみを取得する
-        expire_date=$(echo $line_content | grep -oP '\[Expire\] \K\d{4}-\d{2}-\d{2}')
+        expire_date=$(echo $line_content | grep -oP "\[Expire\] \K\d{4}-\d{2}-\d{2}")
 
         # 日付が抽出できなかった場合、または日付が過去の場合にエラー
         if [[ -z $expire_date ]] || [[ $expire_date < $current_date ]]; then

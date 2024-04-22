@@ -11,5 +11,8 @@ use Exception;
  */
 class UnsupportedOperandTypesException extends Exception
 {
+    /**
+     * @var string
+     */
     protected $message = 'Unsupported operand types';
 }
